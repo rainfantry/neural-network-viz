@@ -672,6 +672,9 @@ export default function App() {
         startInLoadingState={false}
         allowsFullscreenVideo={false}
         allowsInlineMediaPlayback={true}
+        // Force fresh load - no caching
+        cacheEnabled={false}
+        incognito={true}
         mediaPlaybackRequiresUserAction={false}
         injectedJavaScript={`
           document.body.style.backgroundColor = '#0a0a0a';
