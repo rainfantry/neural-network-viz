@@ -461,25 +461,42 @@ function resetView() {
 }
 
 function fitToScreen() {
-    // Calculate bounds of all nodes
+    // Reset physics first to get clean positions
+    initNodes();
+    
+    // Calculate bounds using original normalized positions (0-1 range)
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     nodes.forEach(node => {
-        minX = Math.min(minX, node.px - node.size);
-        maxX = Math.max(maxX, node.px + node.size);
-        minY = Math.min(minY, node.py - node.size);
-        maxY = Math.max(maxY, node.py + node.size);
+        const nx = node.x; // normalized 0-1
+        const ny = node.y;
+        const size = (node.size / width) * 2; // approximate normalized size
+        minX = Math.min(minX, nx - size);
+        maxX = Math.max(maxX, nx + size);
+        minY = Math.min(minY, ny - size);
+        maxY = Math.max(maxY, ny + size);
     });
     
-    const contentWidth = maxX - minX + 100; // padding
-    const contentHeight = maxY - minY + 100;
-    const scaleX = width / contentWidth;
-    const scaleY = height / contentHeight;
-    scale = Math.min(scaleX, scaleY, 1.5); // max 150% zoom
-    scale = Math.max(scale, 0.4); // min 40% zoom
+    // Content dimensions in normalized space
+    const contentWidthNorm = maxX - minX;
+    const contentHeightNorm = maxY - minY;
+    const contentAspect = contentWidthNorm / contentHeightNorm;
+    const screenAspect = width / height;
+    
+    // Calculate scale to fit (use original layout ratios)
+    if (contentAspect > screenAspect) {
+        // Content is wider than screen, fit to width
+        scale = (width * 0.9) / (contentWidthNorm * width);
+    } else {
+        // Content is taller, fit to height
+        scale = (height * 0.9) / (contentHeightNorm * height);
+    }
+    
+    // Clamp zoom
+    scale = Math.max(0.3, Math.min(scale, 1.5));
     
     // Center the content
-    const contentCenterX = (minX + maxX) / 2;
-    const contentCenterY = (minY + maxY) / 2;
+    const contentCenterX = (minX + maxX) / 2 * width;
+    const contentCenterY = (minY + maxY) / 2 * height;
     panX = (width / 2) - (contentCenterX * scale);
     panY = (height / 2) - (contentCenterY * scale);
     
