@@ -27,9 +27,17 @@ const neuralNetworkHTML = `
             height: 100vh;
             transform-origin: 0 0;
         }
-        canvas { display: block; touch-action: none; }
+        #network-viewport {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            transform-origin: 0 0;
+            z-index: 1;
+        }
+        canvas { display: block; touch-action: none; width: 100%; height: 100%; }
         .overlay {
-            position: absolute;
+            position: fixed;
             top: 10px;
             left: 10px;
             z-index: 100;
@@ -44,7 +52,7 @@ const neuralNetworkHTML = `
         .overlay .subject { color: #ff0040; font-weight: bold; }
         .overlay .doctrine { color: #ff6600; font-size: 14px; margin: 5px 0; text-shadow: 0 0 10px #ff6600; }
         .legend {
-            position: absolute;
+            position: fixed;
             bottom: 10px;
             right: 10px;
             z-index: 100;
@@ -57,7 +65,7 @@ const neuralNetworkHTML = `
         .legend-item { margin: 3px 0; display: flex; align-items: center; }
         .legend-color { width: 10px; height: 10px; margin-right: 5px; border-radius: 2px; }
         #tooltip {
-            position: absolute;
+            position: fixed;
             background: rgba(0,0,0,0.95);
             border: 1px solid #00ff41;
             padding: 8px;
@@ -119,7 +127,7 @@ const neuralNetworkHTML = `
         .connection-item { padding: 4px 0; display: flex; justify-content: space-between; font-size: 10px; }
         .connection-type { opacity: 0.6; font-size: 9px; }
         .controls {
-            position: absolute;
+            position: fixed;
             bottom: 10px;
             left: 10px;
             z-index: 100;
@@ -138,7 +146,7 @@ const neuralNetworkHTML = `
             -webkit-user-select: none;
         }
         .zoom-indicator {
-            position: absolute;
+            position: fixed;
             top: 10px;
             right: 10px;
             background: rgba(0,0,0,0.9);
@@ -151,34 +159,37 @@ const neuralNetworkHTML = `
     </style>
 </head>
 <body>
-    <div id="canvas-container">
+    <!-- Network viewport - this gets transformed -->
+    <div id="network-viewport">
         <canvas id="network"></canvas>
-        <div class="overlay">
-            <h1>Neural Network Map</h1>
-            <div>SUBJECT: <span class="subject">GEORGE WU</span></div>
-            <div class="doctrine">HATE DOCTRINE</div>
-            <div style="font-size:9px; color:#666; margin-top:5px;">
-                Core: Hatred as Indifference<br>
-                <em>Tap node • Drag to move • Pinch to zoom • Double-tap to fit</em>
-            </div>
-        </div>
-        <div class="legend">
-            <div class="legend-item"><div class="legend-color" style="background:#ff0040"></div><span>CORRUPTION</span></div>
-            <div class="legend-item"><div class="legend-color" style="background:#00ff41"></div><span>OPERATIONAL</span></div>
-            <div class="legend-item"><div class="legend-color" style="background:#00ccff"></div><span>FRAMEWORK</span></div>
-            <div class="legend-item"><div class="legend-color" style="background:#ff00ff"></div><span>TRAUMA</span></div>
-            <div class="legend-item"><div class="legend-color" style="background:#ffff00"></div><span>DEFENSE</span></div>
-            <div class="legend-item"><div class="legend-color" style="background:#ffffff"></div><span>PERSONA</span></div>
-        </div>
-        <div class="zoom-indicator" id="zoom-level">100%</div>
-        <div class="controls">
-            <button class="control-btn" onclick="fitToScreen()">Fit</button>
-            <button class="control-btn" onclick="resetView()">Reset</button>
-            <button class="control-btn" onclick="zoomIn()">+</button>
-            <button class="control-btn" onclick="zoomOut()">-</button>
-        </div>
-        <div id="tooltip"></div>
     </div>
+    
+    <!-- UI overlays - fixed to screen, not transformed -->
+    <div class="overlay">
+        <h1>Neural Network Map</h1>
+        <div>SUBJECT: <span class="subject">GEORGE WU</span></div>
+        <div class="doctrine">HATE DOCTRINE</div>
+        <div style="font-size:9px; color:#666; margin-top:5px;">
+            Core: Hatred as Indifference<br>
+            <em>Tap node • Drag to move • Pinch to zoom • Double-tap to fit</em>
+        </div>
+    </div>
+    <div class="legend">
+        <div class="legend-item"><div class="legend-color" style="background:#ff0040"></div><span>CORRUPTION</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#00ff41"></div><span>OPERATIONAL</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#00ccff"></div><span>FRAMEWORK</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#ff00ff"></div><span>TRAUMA</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#ffff00"></div><span>DEFENSE</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#ffffff"></div><span>PERSONA</span></div>
+    </div>
+    <div class="zoom-indicator" id="zoom-level">100%</div>
+    <div class="controls">
+        <button class="control-btn" onclick="fitToScreen()">Fit</button>
+        <button class="control-btn" onclick="resetView()">Reset</button>
+        <button class="control-btn" onclick="zoomIn()">+</button>
+        <button class="control-btn" onclick="zoomOut()">-</button>
+    </div>
+    <div id="tooltip"></div>
     <div id="context-modal">
         <div class="context-content" id="modal-content">
             <div class="context-header" id="modal-header">
@@ -207,7 +218,7 @@ const canvas = document.getElementById('network');
 const ctx = canvas.getContext('2d');
 const tooltip = document.getElementById('tooltip');
 const modal = document.getElementById('context-modal');
-const container = document.getElementById('canvas-container');
+const container = document.getElementById('network-viewport');
 const zoomIndicator = document.getElementById('zoom-level');
 
 let width, height, nodes = [], links = [], pulseEnabled = true, time = 0;
