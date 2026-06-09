@@ -81,6 +81,30 @@ start neural-network-viz/NEURAL_NETWORK_GEORGE_WU.html
 ### GitHub Pages
 The visualization is automatically deployed to GitHub Pages when pushed to the main branch.
 
+### Expo / React Native (Mobile App)
+Run as a mobile app on iOS/Android using Expo:
+
+```bash
+# Navigate to the expo-wrapper directory
+cd expo-wrapper
+
+# Install dependencies
+npm install --legacy-peer-deps
+
+# Start Expo
+npx expo start
+
+# Then press:
+# - 'w' for web
+# - 'i' for iOS simulator (macOS only)
+# - 'a' for Android emulator
+```
+
+Requirements:
+- Node.js 18+
+- For iOS: macOS with Xcode
+- For Android: Android Studio with emulator
+
 ---
 
 ## Node Details
