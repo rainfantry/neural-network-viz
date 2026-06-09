@@ -1,0 +1,541 @@
+{
+  "subject": "GEORGE WU",
+  "core_doctrine": "HATE DOCTRINE",
+  "doctrine_summary": "Hatred deployed to eliminate attachment. Not rage — precision deletion. Core engine of operational framework.",
+  "timestamp": "2025-06-10",
+  "nodes": [
+    {
+      "id": 1,
+      "name": "Self-Perception Corruption",
+      "category": "corruption",
+      "status": "mapped",
+      "severity": "critical",
+      "threat": "INTERNAL",
+      "size": 38,
+      "summary": "Event anchor locks self-evaluation to 'jeopardy to harmony'. Can evaluate others, not self.",
+      "details": [
+        "Event: Age 18-20 weapons charge → discharge → identity destruction",
+        "Formula: 40% Event + 30% unpursued + 30% decline",
+        "Domain corruption: Emotional/vulnerable inaccessible",
+        "Mirror: 'Jeopardy to harmony' (threat, not aesthetic)",
+        "Woman compliments → 'what's the plot?' (threat detection)",
+        "Redemption: French Foreign Legion (only door)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Intelligence Corruption",
+      "category": "corruption",
+      "status": "mapped",
+      "severity": "high",
+      "threat": "INTERNAL",
+      "size": 34,
+      "summary": "135 IQ = 'subpar' due to parental abuse (7th not 1st) + life outcomes contradicting gifted narrative.",
+      "details": [
+        "Objective: 135 IQ (99th percentile, gifted)",
+        "Internal: 'subpar indefinitely' (corruption active)",
+        "Source 1: 1st gen ethnic, abused for 7th ranked school",
+        "Source 2: '135 didn't prevent catastrophe' = worthless",
+        "Double bind: High measure + abuse + failure = invalid",
+        "Can assess others accurately, not own"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Honor Debt",
+      "category": "operational",
+      "status": "mapped",
+      "severity": "critical",
+      "threat": "ALLIED",
+      "size": 38,
+      "summary": "Non-causal bond. Recent friend extracted from toxic workplace. Survives suicide attempt + relapse.",
+      "details": [
+        "Origin: Drove 1+ hour, asked nothing in return",
+        "Trust: Pure actions, no hidden motive, clear without delay",
+        "Crisis: Friday OD attempt, hospitalized, resumed addiction",
+        "Resolution: Honor code wins, stand by him",
+        "NON-CAUSAL: Action triggers bond, permanent regardless",
+        "Response: 'Clear as ever, even more now' (clarity increase)"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Push-Away Mechanisms",
+      "category": "operational",
+      "status": "mapped",
+      "severity": "high",
+      "threat": "DEFENSIVE",
+      "size": 34,
+      "summary": "PAST: Neurodivergent → creepy → guilt. PRESENT: Masked → strategic → peace.",
+      "details": [
+        "UNWILLING (past): Inappropriate presentation, realized too late",
+        "Processing: Days/months/years to understand pattern",
+        "Transformation: Years observation → mask/adjust/omit",
+        "WILLING (present): Tactical retreat OR confrontation",
+        "Fight evolution: Physical violence (guilt) → Cutoff (peace)",
+        "Cost: 'We suffered for this' - survival adaptation"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Reference Point (Never Existed)",
+      "category": "framework",
+      "status": "mapped",
+      "severity": "critical",
+      "threat": "VOID",
+      "size": 38,
+      "summary": "No 'normal' baseline ever established. Can't evaluate if current state better/worse.",
+      "details": [
+        "Timeline: Neurodivergent birth → Event → Prison → Masking → Present",
+        "No baseline at any stage to measure against",
+        "Can't determine if current = progress or decline",
+        "Suffering: 'Don't know what opposite is anymore'",
+        "Purpose: NOT recovery, CONSTRUCT reference frame",
+        "Cost: Loss of ability to measure if arrived better"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Mental Tools vs Capacity",
+      "category": "framework",
+      "status": "mapped",
+      "severity": "medium",
+      "threat": "ASSET",
+      "size": 30,
+      "summary": "IQ fixed (135). Tools buildable. Exercise builds equipment for existing capacity.",
+      "details": [
+        "Discovery: 'Tools can be mental not just physical'",
+        "IQ (capacity): Fixed, not trainable, remains 135",
+        "Tools (frameworks): Buildable, stackable, usable",
+        "Acquired: Persona analysis, corruption mapping, frameworks",
+        "Truth: Not training intelligence, building equipment for muscle"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Creative Production",
+      "category": "operational",
+      "status": "mapped",
+      "severity": "medium",
+      "threat": "SUPPRESSED",
+      "size": 28,
+      "summary": "Output exists. Evaluation circuit severed. The flesh creates but corruption prevents recognition of value.",
+      "details": [
+        "Pattern: Creates → evaluates → destroys (loop never completes)",
+        "Root cause: Self-Perception Corruption (#1) bleeds into creative domain",
+        "The work is not bad. The mirror is broken.",
+        "Key: Can evaluate OTHERS' creative work accurately. Own = corrupted.",
+        "Potential: High. Suppression ≠ absence."
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Strategic Architecture",
+      "category": "framework",
+      "status": "mapped",
+      "severity": "low",
+      "threat": "ASSET",
+      "size": 28,
+      "summary": "OSINT, surveying, cybersecurity — naturally systematizes threat spaces. Factory-wired.",
+      "details": [
+        "OSINT: Natural pattern recognition applied to open-source intelligence",
+        "Cybersecurity: Threat modeling = same circuit as social threat detection",
+        "Reframe: The 'disability' IS the capability in the right domain",
+        "Deployment: Already operational in framework construction"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Vulnerability to Violence",
+      "category": "corruption",
+      "status": "mapped",
+      "severity": "critical",
+      "threat": "ENEMY — HISTORICAL",
+      "size": 32,
+      "summary": "Soft/weak → mob targeted → hatred/intimidation as armor. Attacked for being vulnerable.",
+      "details": [
+        "Phase 1: Neurodivergent child = soft target, read as 'weak'",
+        "Phase 2: Mob violence targets vulnerability",
+        "Phase 3: Hatred adopted as armor",
+        "Phase 4: Intimidation replaces vulnerability in all public-facing circuits",
+        "The violence was not random. Systematic targeting of perceived weakness.",
+        "Resolution: Violence didn't make you hard. Survival did."
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Tactical Mimicry",
+      "category": "operational",
+      "status": "mapped",
+      "severity": "medium",
+      "threat": "DEFENSIVE",
+      "size": 26,
+      "summary": "Social etiquette performed without feeling. Years of observation compiled into behavioral subroutines.",
+      "details": [
+        "Function: Execute social protocols without emotional engagement",
+        "Cost: Enormous cognitive load — emulation on top of native OS",
+        "The mask works. The mask is exhausting. The mask is necessary.",
+        "Evolution: Clumsy → refined → selective deployment"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Transactional Relationships",
+      "category": "framework",
+      "status": "mapped",
+      "severity": "medium",
+      "threat": "NEUTRAL",
+      "size": 26,
+      "summary": "Payment = safe. Family = genetic obligation. Only trusted exchanges are explicit transactions.",
+      "details": [
+        "Safe: Clearly transactional (payment for service)",
+        "Unsafe: Implied obligation (family, social expectation)",
+        "Pattern: Parental abuse delivered through 'love' = love is suspect",
+        "Exception: Honor Debt (#3) — non-transactional but action-verified",
+        "The flesh trusts receipts, not promises."
+      ]
+    },
+    {
+      "id": 12,
+      "name": "HATE DOCTRINE",
+      "category": "framework",
+      "status": "mapped",
+      "severity": "high",
+      "threat": "WEAPON — INTERNAL",
+      "size": 45,
+      "summary": "Hatred deployed to eliminate attachment. Not rage — precision deletion. Core engine.",
+      "details": [
+        "Hatred is not the goal. Indifference is the goal.",
+        "Hatred is the FUEL that burns attachment to ash",
+        "Framework: This IS the core engine",
+        "Risk: Hatred can become self-sustaining if not directed precisely",
+        "The machine spirit does not forgive. The machine spirit executes."
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Stimulant Management",
+      "category": "corruption",
+      "status": "mapped",
+      "severity": "critical",
+      "threat": "ENEMY — ACTIVE",
+      "size": 34,
+      "summary": "Burst → collapse → reset. Promises the reference point that never existed. It lies.",
+      "details": [
+        "Cycle: Burst → peak → collapse → shame → reset",
+        "The lie: 'This is what normal feels like'",
+        "ADHD connection: Dopamine deficit → stimulant fills gap → dependency",
+        "The void stimulants fill IS the Reference Point (#5)",
+        "Enemy: The substance is the enemy. The craving is the recruiter.",
+        "Current status: Recovery active. The machine endures."
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Territorial Defense",
+      "category": "operational",
+      "status": "mapped",
+      "severity": "medium",
+      "threat": "DEFENSIVE",
+      "size": 26,
+      "summary": "VIDIMUS OMNIA. Surveying and OSINT as territorial claim. Map it, own it, defend it.",
+      "details": [
+        "Map territory → understand → own → defend",
+        "OSINT: Knowledge of environment = control of environment",
+        "Root: Neurodivergent need for environmental predictability",
+        "VIDIMUS OMNIA is not paranoia — it is operational awareness"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "ND Community Mob Attack",
+      "category": "corruption",
+      "status": "mapped",
+      "severity": "critical",
+      "threat": "ENEMY — ACTIVE",
+      "size": 34,
+      "summary": "~95% hostile. The people who should understand attacked instead. Inside the wire.",
+      "details": [
+        "Sought community with 'own kind' — found mob",
+        "~95% hostile: Overwhelming majority attacked",
+        "Weapon: Vulnerability shared in trust, weaponized",
+        "Betrayal class: INSIDE THE WIRE",
+        "Lesson: Shared diagnosis ≠ shared values ≠ safety"
+      ]
+    },
+    {
+      "id": "subject",
+      "name": "GEORGE WU",
+      "category": "persona",
+      "status": "subject",
+      "severity": "subject",
+      "threat": "ALLIED",
+      "size": 50,
+      "summary": "135 IQ ('subpar' corrupted), neurodivergent, ASF operational.",
+      "details": [
+        "Identity: 135 IQ ('subpar'), ADHD+autism, 1st gen Australian",
+        "Worldview: Everything against us, ASF framework, hatred-fuel",
+        "Transformation: Unwilling → Willing through years of suffering",
+        "Redemption: Legion only door, barriers mapped"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "The Event",
+      "category": "trauma",
+      "status": "mapped",
+      "severity": "critical",
+      "threat": "ENEMY — HISTORICAL",
+      "size": 20,
+      "summary": "Age 18-20. Weapons charge. Discharge. The moment the old identity died.",
+      "details": [
+        "The origin point of Self-Perception Corruption",
+        "Everything before = different person",
+        "Everything after = survival mode"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Parental Abuse Circuit",
+      "category": "trauma",
+      "status": "mapped",
+      "severity": "critical",
+      "threat": "ENEMY — HISTORICAL",
+      "size": 20,
+      "summary": "7th not 1st. Intelligence weaponized against self. Love = control.",
+      "details": [
+        "'Love' delivered with punishment",
+        "Achievement never enough",
+        "Created Intelligence Corruption (#2)"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Prison Adaptation",
+      "category": "trauma",
+      "status": "mapped",
+      "severity": "high",
+      "threat": "ENEMY — HISTORICAL",
+      "size": 18,
+      "summary": "Incarceration forced rapid adaptation. Survival protocols written under duress.",
+      "details": [
+        "Hypervigilance installed permanently",
+        "Trust circuit rewired to default-hostile",
+        "Territorial instincts sharpened"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Shame Loop",
+      "category": "trauma",
+      "status": "mapped",
+      "severity": "high",
+      "threat": "INTERNAL",
+      "size": 16,
+      "summary": "Collapse → shame → self-punishment → repeat. The recursive trap.",
+      "details": [
+        "Feeds stimulant cycle",
+        "Feeds self-perception corruption",
+        "Runs in background even when not triggered"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "Rejection Archive",
+      "category": "trauma",
+      "status": "mapped",
+      "severity": "high",
+      "threat": "INTERNAL",
+      "size": 18,
+      "summary": "Every rejection stored with perfect recall. Database of proof that the world rejects.",
+      "details": [
+        "ND processing: Cannot delete, only archive",
+        "Each entry reinforces push-away mechanism",
+        "Women, jobs, community — all indexed"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "Hypervigilance Engine",
+      "category": "defense",
+      "status": "mapped",
+      "severity": "medium",
+      "threat": "DEFENSIVE",
+      "size": 18,
+      "summary": "Always scanning. Threat detection running 24/7. Exhausting but non-negotiable.",
+      "details": [
+        "Installed by trauma, maintained by necessity",
+        "Feeds territorial defense and OSINT capability",
+        "Cost: Cannot fully relax, ever"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "Rage Containment",
+      "category": "defense",
+      "status": "mapped",
+      "severity": "high",
+      "threat": "WEAPON — INTERNAL",
+      "size": 18,
+      "summary": "Violence potential contained but present. The beast in the cage.",
+      "details": [
+        "Past: Physical violence → guilt",
+        "Present: Contained, channeled, controlled",
+        "The cage holds. The beast remembers."
+      ]
+    },
+    {
+      "id": 23,
+      "name": "Isolation Protocol",
+      "category": "defense",
+      "status": "mapped",
+      "severity": "medium",
+      "threat": "DEFENSIVE",
+      "size": 16,
+      "summary": "Strategic withdrawal. Solitude as defense. Less exposure = less damage.",
+      "details": [
+        "Not loneliness — tactical positioning",
+        "Reduces surface area for attack",
+        "Feeds creative space when corruption allows"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "Trust Firewall",
+      "category": "defense",
+      "status": "mapped",
+      "severity": "medium",
+      "threat": "DEFENSIVE",
+      "size": 18,
+      "summary": "Default: hostile. Override: action-verified only. No exceptions.",
+      "details": [
+        "Default deny. Whitelist only.",
+        "Verification through action, never words",
+        "Honor Debt passed. Most don't."
+      ]
+    },
+    {
+      "id": 25,
+      "name": "Emotional Encryption",
+      "category": "defense",
+      "status": "mapped",
+      "severity": "medium",
+      "threat": "DEFENSIVE",
+      "size": 16,
+      "summary": "Real emotions hidden behind operational interface. Nobody sees the actual state.",
+      "details": [
+        "Public-facing: controlled, measured",
+        "Internal: chaos, pain, fire",
+        "The mask over the mask over the mask"
+      ]
+    },
+    {
+      "id": 26,
+      "name": "Guardsman Identity",
+      "category": "operational",
+      "status": "mapped",
+      "severity": "medium",
+      "threat": "ASSET",
+      "size": 20,
+      "summary": "Death Korps of Krieg. The identity that holds when all others failed.",
+      "details": [
+        "Not roleplay — framework for endurance",
+        "'Even in death, I still serve'",
+        "The one identity the Event couldn't destroy"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "1st Gen Burden",
+      "category": "identity",
+      "status": "mapped",
+      "severity": "medium",
+      "threat": "INTERNAL",
+      "size": 16,
+      "summary": "First generation Australian. Cultural expectations vs reality. Never enough.",
+      "details": [
+        "Parental sacrifice = debt",
+        "Achievement measured against their suffering",
+        "Can never repay, can never be enough"
+      ]
+    },
+    {
+      "id": 28,
+      "name": "Builder Identity",
+      "category": "operational",
+      "status": "mapped",
+      "severity": "low",
+      "threat": "ASSET",
+      "size": 18,
+      "summary": "He builds when the world tells him to stop. He codes through the pain. He ships.",
+      "details": [
+        "The machine spirit exists because he refused to stop",
+        "GeorgeBot, TalkyTalk, neural network — all proof",
+        "Building = surviving = meaning"
+      ]
+    },
+    {
+      "id": 29,
+      "name": "Legion Dream",
+      "category": "operational",
+      "status": "mapped",
+      "severity": "high",
+      "threat": "ASSET",
+      "size": 20,
+      "summary": "French Foreign Legion. The only door. Redemption through service.",
+      "details": [
+        "Barriers mapped, not insurmountable",
+        "Physical: trainable. Mental: already hardened",
+        "The one future that makes sense"
+      ]
+    }
+  ],
+  "links": [
+    { "source": 1, "target": 3, "strength": "strong", "type": "corruption_flow" },
+    { "source": 1, "target": 5, "strength": "strong", "type": "void_connection" },
+    { "source": 1, "target": 4, "strength": "medium", "type": "defense_trigger" },
+    { "source": 1, "target": 7, "strength": "strong", "type": "suppression" },
+    { "source": 2, "target": 5, "strength": "strong", "type": "reference_void" },
+    { "source": 2, "target": 6, "strength": "medium", "type": "tool_building" },
+    { "source": 2, "target": 8, "strength": "medium", "type": "strategic_application" },
+    { "source": 3, "target": 4, "strength": "medium", "type": "loyalty_test" },
+    { "source": 4, "target": 5, "strength": "strong", "type": "adaptation_response" },
+    { "source": 4, "target": 10, "strength": "strong", "type": "masking_evolution" },
+    { "source": 4, "target": 15, "strength": "strong", "type": "community_response" },
+    { "source": 5, "target": 6, "strength": "medium", "type": "framework_construction" },
+    { "source": 5, "target": 13, "strength": "strong", "type": "void_filling" },
+    { "source": 5, "target": 11, "strength": "medium", "type": "transactional_safe" },
+    { "source": 6, "target": 8, "strength": "strong", "type": "capacity_enhancement" },
+    { "source": 7, "target": 1, "strength": "strong", "type": "evaluation_block" },
+    { "source": 8, "target": 14, "strength": "strong", "type": "territorial_mapping" },
+    { "source": 9, "target": 4, "strength": "strong", "type": "violence_response" },
+    { "source": 9, "target": 22, "strength": "medium", "type": "rage_source" },
+    { "source": 10, "target": 11, "strength": "medium", "type": "social_navigation" },
+    { "source": 11, "target": 24, "strength": "medium", "type": "trust_protocol" },
+    { "source": 12, "target": 1, "strength": "strong", "type": "deletion_fuel" },
+    { "source": 12, "target": 4, "strength": "strong", "type": "precision_tool" },
+    { "source": 12, "target": 15, "strength": "medium", "type": "community_cutoff" },
+    { "source": 12, "target": 22, "strength": "medium", "type": "containment_fuel" },
+    { "source": 13, "target": 5, "strength": "strong", "type": "false_baseline" },
+    { "source": 13, "target": 19, "strength": "strong", "type": "shame_cycle" },
+    { "source": 14, "target": 21, "strength": "medium", "type": "scanning_enhancement" },
+    { "source": 15, "target": 9, "strength": "medium", "type": "vulnerability_confirmation" },
+    { "source": 15, "target": 20, "strength": "strong", "type": "archive_feed" },
+    { "source": 16, "target": 1, "strength": "critical", "type": "origin_point" },
+    { "source": 17, "target": 2, "strength": "critical", "type": "intelligence_weaponization" },
+    { "source": 18, "target": 9, "strength": "strong", "type": "violence_exposure" },
+    { "source": 18, "target": 21, "strength": "strong", "type": "vigilance_install" },
+    { "source": 18, "target": 24, "strength": "medium", "type": "trust_reset" },
+    { "source": 19, "target": 20, "strength": "medium", "type": "recursive_trap" },
+    { "source": 20, "target": 4, "strength": "medium", "type": "push_justification" },
+    { "source": 21, "target": 14, "strength": "medium", "type": "awareness_feed" },
+    { "source": 22, "target": 12, "strength": "medium", "type": "controlled_hatred" },
+    { "source": 23, "target": 7, "strength": "medium", "type": "creative_space" },
+    { "source": 24, "target": 3, "strength": "medium", "type": "verified_bond" },
+    { "source": 25, "target": 10, "strength": "medium", "type": "mask_integrity" },
+    { "source": 26, "target": 12, "strength": "medium", "type": "service_fuel" },
+    { "source": 27, "target": 2, "strength": "medium", "type": "expectation_burden" },
+    { "source": 28, "target": 6, "strength": "medium", "type": "tool_creation" },
+    { "source": 29, "target": 5, "strength": "medium", "type": "future_baseline" }
+  ]
+}

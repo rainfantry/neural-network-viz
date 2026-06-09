@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEURAL NETWORK — GEORGE WU</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0a0a0a;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+        
+        #canvas-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        canvas {
+            display: block;
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #00ff41;
+            padding: 15px;
+            max-width: 350px;
+        }
+        
+        .overlay h1 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .overlay .subject {
+            color: #ff0040;
+            font-weight: bold;
+        }
+        
+        .overlay .doctrine {
+            color: #ff6600;
+            font-size: 18px;
+            margin: 10px 0;
+            text-shadow: 0 0 10px #ff6600;
+        }
+        
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #00ff41;
+            padding: 15px;
+            font-size: 11px;
+        }
+        
+        .legend-item {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+        
+        .corruption { background: #ff0040; }
+        .operational { background: #00ff41; }
+        .framework { background: #00ccff; }
+        .trauma { background: #ff00ff; }
+        .defense { background: #ffff00; }
+        .persona { background: #ffffff; }
+        
+        #tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.95);
+            border: 1px solid #00ff41;
+            padding: 10px;
+            max-width: 300px;
+            font-size: 11px;
+            display: none;
+            z-index: 200;
+            pointer-events: none;
+        }
+        
+        .tooltip-title {
+            color: #ff6600;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        
+        button {
+            background: #0a0a0a;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-family: inherit;
+            text-transform: uppercase;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+        
+        button:hover {
+            background: #00ff41;
+            color: #0a0a0a;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="network"></canvas>
+        
+        <div class="overlay">
+            <h1>Neural Network Map</h1>
+            <div>SUBJECT: <span class="subject">GEORGE WU</span></div>
+            <div class="doctrine">HATE DOCTRINE</div>
+            <div style="font-size:10px; color:#666; margin-top:10px;">
+                Core Engine: Hatred as Indifference<br>
+                Fuel: Precision deletion of attachment<br>
+                Output: Controlled demolition
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color corruption"></div>
+                <span>CORRUPTION</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color operational"></div>
+                <span>OPERATIONAL</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color framework"></div>
+                <span>FRAMEWORK</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color trauma"></div>
+                <span>TRAUMA</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color defense"></div>
+                <span>DEFENSE</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color persona"></div>
+                <span>PERSONA</span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button onclick="resetView()">Reset</button>
+            <button onclick="togglePulse()">Pulse</button>
+        </div>
+        
+        <div id="tooltip"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('network');
+        const ctx = canvas.getContext('2d');
+        const tooltip = document.getElementById('tooltip');
+        
+        let width, height;
+        let nodes = [];
+        let links = [];
+        let pulseEnabled = true;
+        let time = 0;
+        
+        // Node data derived from KNOWLEDGE_BASE
+        const nodeData = [
+            { id: 1, name: "Self-Perception\nCorruption", category: "corruption", severity: "critical", size: 38, x: 0.3, y: 0.2 },
+            { id: 2, name: "Intelligence\nCorruption", category: "corruption", severity: "high", size: 34, x: 0.7, y: 0.2 },
+            { id: 3, name: "Honor Debt", category: "operational", severity: "critical", size: 38, x: 0.5, y: 0.35 },
+            { id: 4, name: "Push-Away\nMechanisms", category: "operational", severity: "high", size: 34, x: 0.25, y: 0.4 },
+            { id: 5, name: "Reference Point\n(Never Existed)", category: "framework", severity: "critical", size: 38, x: 0.5, y: 0.5 },
+            { id: 6, name: "Mental Tools\nvs Capacity", category: "framework", severity: "medium", size: 30, x: 0.75, y: 0.45 },
+            { id: 7, name: "Creative\nProduction", category: "operational", severity: "medium", size: 28, x: 0.15, y: 0.55 },
+            { id: 8, name: "Strategic\nArchitecture", category: "framework", severity: "low", size: 28, x: 0.85, y: 0.35 },
+            { id: 9, name: "Vulnerability\nto Violence", category: "corruption", severity: "critical", size: 32, x: 0.1, y: 0.35 },
+            { id: 10, name: "Tactical\nMimicry", category: "operational", severity: "medium", size: 26, x: 0.2, y: 0.65 },
+            { id: 11, name: "Transactional\nRelationships", category: "framework", severity: "medium", size: 26, x: 0.6, y: 0.65 },
+            { id: 12, name: "HATE\nDOCTRINE", category: "framework", severity: "high", size: 45, x: 0.5, y: 0.75, core: true },
+            { id: 13, name: "Stimulant\nManagement", category: "corruption", severity: "critical", size: 34, x: 0.75, y: 0.6 },
+            { id: 14, name: "Territorial\nDefense", category: "operational", severity: "medium", size: 26, x: 0.9, y: 0.5 },
+            { id: 15, name: "ND Community\nMob Attack", category: "corruption", severity: "critical", size: 34, x: 0.35, y: 0.75 },
+            { id: "subject", name: "GEORGE WU", category: "persona", severity: "subject", size: 50, x: 0.5, y: 0.5, fixed: true },
+            { id: 16, name: "The Event", category: "trauma", severity: "critical", size: 20, x: 0.4, y: 0.1 },
+            { id: 17, name: "Parental\nAbuse Circuit", category: "trauma", severity: "critical", size: 20, x: 0.65, y: 0.1 },
+            { id: 18, name: "Prison\nAdaptation", category: "trauma", severity: "high", size: 18, x: 0.1, y: 0.5 },
+            { id: 19, name: "Shame\nLoop", category: "trauma", severity: "high", size: 16, x: 0.8, y: 0.75 },
+            { id: 20, name: "Rejection\nArchive", category: "trauma", severity: "high", size: 18, x: 0.25, y: 0.85 },
+            { id: 21, name: "Hypervigilance\nEngine", category: "defense", severity: "medium", size: 18, x: 0.05, y: 0.6 },
+            { id: 22, name: "Rage\nContainment", category: "defense", severity: "high", size: 18, x: 0.7, y: 0.85 },
+            { id: 23, name: "Isolation\nProtocol", category: "defense", severity: "medium", size: 16, x: 0.4, y: 0.9 },
+            { id: 24, name: "Trust\nFirewall", category: "defense", severity: "medium", size: 18, x: 0.6, y: 0.25 },
+            { id: 25, name: "Emotional\nEncryption", category: "defense", severity: "medium", size: 16, x: 0.85, y: 0.7 },
+            { id: 26, name: "Guardsman\nIdentity", category: "operational", severity: "medium", size: 20, x: 0.15, y: 0.75 },
+            { id: 27, name: "1st Gen\nBurden", category: "corruption", severity: "medium", size: 16, x: 0.6, y: 0.1 },
+            { id: 28, name: "Builder\nIdentity", category: "operational", severity: "low", size: 18, x: 0.9, y: 0.25 },
+            { id: 29, name: "Legion\nDream", category: "operational", severity: "high", size: 20, x: 0.5, y: 0.95 },
+        ];
+        
+        const linkData = [
+            { source: 1, target: 3, strength: 0.8 },
+            { source: 1, target: 5, strength: 0.9 },
+            { source: 1, target: 4, strength: 0.6 },
+            { source: 1, target: 7, strength: 0.8 },
+            { source: 2, target: 5, strength: 0.9 },
+            { source: 2, target: 6, strength: 0.6 },
+            { source: 2, target: 8, strength: 0.5 },
+            { source: 3, target: 4, strength: 0.6 },
+            { source: 4, target: 5, strength: 0.9 },
+            { source: 4, target: 10, strength: 0.8 },
+            { source: 4, target: 15, strength: 0.8 },
+            { source: 5, target: 6, strength: 0.6 },
+            { source: 5, target: 13, strength: 0.9 },
+            { source: 5, target: 11, strength: 0.6 },
+            { source: 6, target: 8, strength: 0.8 },
+            { source: 7, target: 1, strength: 0.8 },
+            { source: 8, target: 14, strength: 0.9 },
+            { source: 9, target: 4, strength: 0.9 },
+            { source: 9, target: 22, strength: 0.7 },
+            { source: 10, target: 11, strength: 0.6 },
+            { source: 11, target: 24, strength: 0.5 },
+            { source: 12, target: 1, strength: 0.7 },
+            { source: 12, target: 4, strength: 0.8 },
+            { source: 12, target: 15, strength: 0.7 },
+            { source: 12, target: 22, strength: 0.6 },
+            { source: 13, target: 5, strength: 0.9 },
+            { source: 13, target: 19, strength: 0.8 },
+            { source: 14, target: 21, strength: 0.7 },
+            { source: 15, target: 9, strength: 0.6 },
+            { source: 15, target: 20, strength: 0.8 },
+            { source: 16, target: 1, strength: 1.0 },
+            { source: 17, target: 2, strength: 1.0 },
+            { source: 18, target: 9, strength: 0.8 },
+            { source: 18, target: 21, strength: 0.9 },
+            { source: 18, target: 24, strength: 0.7 },
+            { source: 19, target: 20, strength: 0.6 },
+            { source: 20, target: 4, strength: 0.7 },
+            { source: 21, target: 14, strength: 0.6 },
+            { source: 22, target: 12, strength: 0.5 },
+            { source: 23, target: 7, strength: 0.4 },
+            { source: 24, target: 3, strength: 0.5 },
+            { source: 25, target: 10, strength: 0.6 },
+            { source: 26, target: 12, strength: 0.5 },
+            { source: 27, target: 2, strength: 0.7 },
+            { source: 28, target: 6, strength: 0.5 },
+            { source: 29, target: 5, strength: 0.6 },
+        ];
+        
+        const colors = {
+            corruption: '#ff0040',
+            operational: '#00ff41',
+            framework: '#00ccff',
+            trauma: '#ff00ff',
+            defense: '#ffff00',
+            persona: '#ffffff'
+        };
+        
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            initNodes();
+        }
+        
+        function initNodes() {
+            nodes = nodeData.map(n => ({
+                ...n,
+                px: n.fixed ? width * 0.5 : width * n.x,
+                py: n.fixed ? height * 0.5 : height * n.y,
+                vx: 0, vy: 0,
+                pulse: Math.random() * Math.PI * 2
+            }));
+            
+            links = linkData.map(l => {
+                const source = nodes.find(n => n.id === l.source);
+                const target = nodes.find(n => n.id === l.target);
+                return source && target ? { ...l, source, target } : null;
+            }).filter(Boolean);
+        }
+        
+        function update() {
+            time += 0.01;
+            
+            // Gentle floating motion
+            nodes.forEach(node => {
+                if (node.fixed) return;
+                
+                node.vx += (Math.random() - 0.5) * 0.02;
+                node.vy += (Math.random() - 0.5) * 0.02;
+                node.vx *= 0.98;
+                node.vy *= 0.98;
+                
+                node.px += node.vx;
+                node.py += node.vy;
+                
+                // Keep in bounds
+                node.px = Math.max(50, Math.min(width - 50, node.px));
+                node.py = Math.max(50, Math.min(height - 50, node.py));
+                
+                if (pulseEnabled) {
+                    node.pulse += 0.03;
+                }
+            });
+            
+            // Center node stays fixed
+            const center = nodes.find(n => n.id === 'subject');
+            if (center) {
+                center.px = width * 0.5;
+                center.py = height * 0.5;
+            }
+        }
+        
+        function draw() {
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#111';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            // Draw links
+            links.forEach(link => {
+                const alpha = link.strength * 0.3;
+                ctx.strokeStyle = `rgba(0, 255, 65, ${alpha})`;
+                ctx.lineWidth = link.strength * 2;
+                ctx.beginPath();
+                ctx.moveTo(link.source.px, link.source.py);
+                ctx.lineTo(link.target.px, link.target.py);
+                ctx.stroke();
+            });
+            
+            // Draw nodes
+            nodes.forEach(node => {
+                const color = colors[node.category] || '#888';
+                const pulseSize = pulseEnabled ? Math.sin(node.pulse) * 3 : 0;
+                const displaySize = node.size + pulseSize;
+                
+                // Glow
+                const gradient = ctx.createRadialGradient(
+                    node.px, node.py, 0,
+                    node.px, node.py, displaySize * 2
+                );
+                gradient.addColorStop(0, color + '80');
+                gradient.addColorStop(0.5, color + '20');
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(node.px, node.py, displaySize * 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Core
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(node.px, node.py, displaySize / 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Border for core nodes
+                if (node.core || node.id === 'subject') {
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(node.px, node.py, displaySize / 2 + 3, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+                // Label
+                ctx.fillStyle = node.core ? '#ff6600' : (node.id === 'subject' ? '#ff0040' : '#fff');
+                ctx.font = node.core ? 'bold 14px Courier New' : '11px Courier New';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const lines = node.name.split('\n');
+                lines.forEach((line, i) => {
+                    ctx.fillText(line, node.px, node.py + displaySize + 15 + (i * 14));
+                });
+            });
+        }
+        
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+        
+        function resetView() {
+            initNodes();
+        }
+        
+        function togglePulse() {
+            pulseEnabled = !pulseEnabled;
+        }
+        
+        // Mouse interaction
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            
+            let hovered = null;
+            nodes.forEach(node => {
+                const dx = mx - node.px;
+                const dy = my - node.py;
+                if (Math.sqrt(dx*dx + dy*dy) < node.size) {
+                    hovered = node;
+                }
+            });
+            
+            if (hovered) {
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.clientX + 15) + 'px';
+                tooltip.style.top = (e.clientY + 15) + 'px';
+                tooltip.innerHTML = `
+                    <div class="tooltip-title">${hovered.name.replace('\n', ' ')}</div>
+                    <div>Category: ${hovered.category.toUpperCase()}</div>
+                    <div>Severity: ${hovered.severity.toUpperCase()}</div>
+                    <div>Connections: ${links.filter(l => l.source === hovered || l.target === hovered).length}</div>
+                `;
+            } else {
+                tooltip.style.display = 'none';
+            }
+        });
+        
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            
+            nodes.forEach(node => {
+                if (node.fixed) return;
+                const dx = mx - node.px;
+                const dy = my - node.py;
+                if (Math.sqrt(dx*dx + dy*dy) < node.size) {
+                    node.dragging = true;
+                }
+            });
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            
+            nodes.forEach(node => {
+                if (node.dragging) {
+                    node.px = mx;
+                    node.py = my;
+                }
+            });
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            nodes.forEach(node => node.dragging = false);
+        });
+        
+        window.addEventListener('resize', resize);
+        
+        resize();
+        loop();
+    </script>
+</body>
+</html>
