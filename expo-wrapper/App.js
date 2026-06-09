@@ -1,12 +1,8 @@
-import React, { useRef, useState } from 'react';
-import { StyleSheet, View, StatusBar, Dimensions } from 'react-native';
+import React, { useRef } from 'react';
+import { StyleSheet, View, StatusBar } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { GestureHandlerRootView, PanGestureHandler, PinchGestureHandler, State } from 'react-native-gesture-handler';
-import Animated, { useAnimatedGestureHandler, useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
-
-// Neural Network HTML with pinch/zoom/pan support
+// Neural Network HTML with pinch/zoom/pan support (no native deps needed)
 const neuralNetworkHTML = `
 <!DOCTYPE html>
 <html>
@@ -138,6 +134,8 @@ const neuralNetworkHTML = `
             font-family: inherit;
             font-size: 10px;
             cursor: pointer;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
         }
         .zoom-indicator {
             position: absolute;
@@ -148,6 +146,7 @@ const neuralNetworkHTML = `
             padding: 5px 10px;
             font-size: 10px;
             z-index: 100;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -211,15 +210,9 @@ const container = document.getElementById('canvas-container');
 const zoomIndicator = document.getElementById('zoom-level');
 
 let width, height, nodes = [], links = [], pulseEnabled = true, time = 0;
-
-// Zoom/Pan state
-let scale = 1;
-let panX = 0;
-let panY = 0;
-let isDragging = false;
-let dragNode = null;
-let lastTouchDist = 0;
-let isPinching = false;
+let scale = 1, panX = 0, panY = 0;
+let isDragging = false, dragNode = null, lastTouchDist = 0;
+let isPinching = false, panStartX = 0, panStartY = 0;
 
 const nodeData = [
     { id: 1, name: "Self-Perception\\nCorruption", category: "corruption", severity: "critical", size: 32, x: 0.3, y: 0.2, summary: "Event anchor locks self-evaluation to 'jeopardy to harmony'.", details: ["Event: Age 18-20 weapons charge → discharge → identity destruction", "Domain corruption: Emotional/vulnerable inaccessible", "Mirror: 'Jeopardy to harmony' (threat, not aesthetic)", "Redemption: French Foreign Legion (only door)"] },
@@ -363,12 +356,8 @@ function update() {
     if (center) { center.px = width * 0.5; center.py = height * 0.5; }
 }
 
-function toScreen(x, y) {
-    return { x: (x + panX) * scale, y: (y + panY) * scale };
-}
-
-function toWorld(x, y) {
-    return { x: x / scale - panX, y: y / scale - panY };
+function toWorld(screenX, screenY) {
+    return { x: (screenX - panX) / scale, y: (screenY - panY) / scale };
 }
 
 function draw() {
@@ -455,79 +444,111 @@ function resetView() {
 
 modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-// Touch handling for pinch/zoom/pan
-canvas.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 2) {
+// Touch handling for pinch/zoom/pan - all in JS, no native deps
+let touchStartTime = 0;
+let touchStartPos = { x: 0, y: 0 };
+let initialPinchDist = 0;
+let initialScale = 1;
+let initialPanX = 0;
+let initialPanY = 0;
+let activeTouches = new Map();
+
+document.addEventListener('touchstart', (e) => {
+    touchStartTime = Date.now();
+    
+    for (let touch of e.changedTouches) {
+        activeTouches.set(touch.identifier, { x: touch.clientX, y: touch.clientY });
+    }
+    
+    if (activeTouches.size === 2) {
+        // Pinch start
         isPinching = true;
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        lastTouchDist = Math.sqrt(dx * dx + dy * dy);
-    } else if (e.touches.length === 1) {
-        const t = e.touches[0];
-        const rect = canvas.getBoundingClientRect();
-        const worldPos = toWorld(t.clientX - rect.left, t.clientY - rect.top);
+        const touches = Array.from(activeTouches.values());
+        const dx = touches[0].x - touches[1].x;
+        const dy = touches[0].y - touches[1].y;
+        initialPinchDist = Math.sqrt(dx * dx + dy * dy);
+        initialScale = scale;
+    } else if (activeTouches.size === 1) {
+        // Potential drag or pan
+        const touch = e.changedTouches[0];
+        touchStartPos = { x: touch.clientX, y: touch.clientY };
+        initialPanX = panX;
+        initialPanY = panY;
         
-        let clickedNode = null;
+        const worldPos = toWorld(touch.clientX, touch.clientY);
+        dragNode = null;
         nodes.forEach(node => {
             const dx = worldPos.x - node.px;
             const dy = worldPos.y - node.py;
-            if (Math.sqrt(dx*dx + dy*dy) < node.size + 10) {
-                clickedNode = node;
+            if (Math.sqrt(dx*dx + dy*dy) < node.size + 15) {
+                dragNode = node;
             }
         });
-        
-        if (clickedNode) {
-            dragNode = clickedNode;
-            isDragging = true;
-        } else {
-            isDragging = true;
-            dragNode = null;
-        }
     }
 }, { passive: false });
 
-canvas.addEventListener('touchmove', (e) => {
+document.addEventListener('touchmove', (e) => {
     e.preventDefault();
-    if (e.touches.length === 2 && isPinching) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
+    
+    for (let touch of e.changedTouches) {
+        if (activeTouches.has(touch.identifier)) {
+            activeTouches.set(touch.identifier, { x: touch.clientX, y: touch.clientY });
+        }
+    }
+    
+    if (activeTouches.size === 2 && isPinching) {
+        const touches = Array.from(activeTouches.values());
+        const dx = touches[0].x - touches[1].x;
+        const dy = touches[0].y - touches[1].y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const scaleFactor = dist / lastTouchDist;
-        scale = Math.max(0.3, Math.min(4, scale * scaleFactor));
-        lastTouchDist = dist;
-        updateTransform();
-    } else if (e.touches.length === 1 && isDragging) {
-        const t = e.touches[0];
-        const rect = canvas.getBoundingClientRect();
-        const worldPos = toWorld(t.clientX - rect.left, t.clientY - rect.top);
+        
+        if (initialPinchDist > 0) {
+            const newScale = initialScale * (dist / initialPinchDist);
+            scale = Math.max(0.3, Math.min(4, newScale));
+            updateTransform();
+        }
+    } else if (activeTouches.size === 1 && !isPinching) {
+        const touch = e.changedTouches[0];
         
         if (dragNode && !dragNode.fixed) {
+            // Dragging a node
+            const worldPos = toWorld(touch.clientX, touch.clientY);
             dragNode.px = worldPos.x;
             dragNode.py = worldPos.y;
             dragNode.vx = 0;
             dragNode.vy = 0;
-        } else if (!dragNode) {
+        } else {
             // Panning
-            panX += e.movementX / scale || 0;
-            panY += e.movementY / scale || 0;
+            const dx = touch.clientX - touchStartPos.x;
+            const dy = touch.clientY - touchStartPos.y;
+            panX = initialPanX + dx;
+            panY = initialPanY + dy;
             updateTransform();
         }
     }
 }, { passive: false });
 
-canvas.addEventListener('touchend', (e) => {
-    if (e.touches.length === 0) {
-        if (isDragging && dragNode) {
-            // Check if it was a tap (minimal movement)
+document.addEventListener('touchend', (e) => {
+    for (let touch of e.changedTouches) {
+        activeTouches.delete(touch.identifier);
+    }
+    
+    if (activeTouches.size < 2) {
+        isPinching = false;
+        initialPinchDist = 0;
+    }
+    
+    if (activeTouches.size === 0) {
+        // Check if it was a tap
+        const touchDuration = Date.now() - touchStartTime;
+        if (touchDuration < 300 && dragNode) {
             openModal(dragNode);
         }
-        isDragging = false;
         dragNode = null;
-        isPinching = false;
     }
 }, { passive: false });
 
-// Mouse click handling
+// Mouse support for desktop
 canvas.addEventListener('click', (e) => {
     const rect = canvas.getBoundingClientRect();
     const worldPos = toWorld(e.clientX - rect.left, e.clientY - rect.top);
@@ -540,22 +561,6 @@ canvas.addEventListener('click', (e) => {
     if (clicked) openModal(clicked);
 });
 
-canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const worldPos = toWorld(e.clientX - rect.left, e.clientY - rect.top);
-    let hovered = null;
-    nodes.forEach(node => {
-        const dx = worldPos.x - node.px;
-        const dy = worldPos.y - node.py;
-        if (Math.sqrt(dx*dx + dy*dy) < node.size + 10) hovered = node;
-    });
-    if (hovered) {
-        tooltip.style.display = 'block'; tooltip.style.left = (e.clientX + 10) + 'px'; tooltip.style.top = (e.clientY + 10) + 'px';
-        tooltip.innerHTML = '<div class="tooltip-title">' + hovered.name.replace('\\n', ' ') + '</div><div>' + hovered.category.toUpperCase() + '</div>';
-    } else tooltip.style.display = 'none';
-});
-
-// Wheel zoom
 canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
@@ -571,69 +576,30 @@ resize(); loop();
 `;
 
 export default function App() {
-  const webviewRef = useRef(null);
-  const [zoom, setZoom] = useState(1);
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  const scale = useSharedValue(1);
-
-  const panGesture = useAnimatedGestureHandler({
-    onStart: (_, ctx) => {
-      ctx.startX = translateX.value;
-      ctx.startY = translateY.value;
-    },
-    onActive: (event, ctx) => {
-      translateX.value = ctx.startX + event.translationX;
-      translateY.value = ctx.startY + event.translationY;
-    },
-  });
-
-  const pinchGesture = useAnimatedGestureHandler({
-    onStart: (_, ctx) => {
-      ctx.startScale = scale.value;
-    },
-    onActive: (event, ctx) => {
-      scale.value = Math.max(0.3, Math.min(4, ctx.startScale * event.scale));
-    },
-  });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
-  }));
-
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
-      <PinchGestureHandler>
-        <Animated.View style={[styles.container, animatedStyle]}>
-          <PanGestureHandler>
-            <Animated.View style={styles.container}>
-              <WebView
-                ref={webviewRef}
-                originWhitelist={['*']}
-                source={{ html: neuralNetworkHTML }}
-                style={styles.webview}
-                backgroundColor="#0a0a0a"
-                scrollEnabled={false}
-                bounces={false}
-                overScrollMode="never"
-                scalesPageToFit={false}
-                javaScriptEnabled={true}
-                domStorageEnabled={true}
-                startInLoadingState={false}
-                allowsFullscreenVideo={false}
-                allowsInlineMediaPlayback={true}
-                mediaPlaybackRequiresUserAction={false}
-              />
-            </Animated.View>
-          </PanGestureHandler>
-        </Animated.View>
-      </PinchGestureHandler>
-    </GestureHandlerRootView>
+      <WebView
+        originWhitelist={['*']}
+        source={{ html: neuralNetworkHTML }}
+        style={styles.webview}
+        backgroundColor="#0a0a0a"
+        scrollEnabled={false}
+        bounces={false}
+        overScrollMode="never"
+        scalesPageToFit={false}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        startInLoadingState={false}
+        allowsFullscreenVideo={false}
+        allowsInlineMediaPlayback={true}
+        mediaPlaybackRequiresUserAction={false}
+        injectedJavaScript={`
+          document.body.style.backgroundColor = '#0a0a0a';
+          true;
+        `}
+      />
+    </View>
   );
 }
 
