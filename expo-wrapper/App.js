@@ -159,7 +159,7 @@ const neuralNetworkHTML = `
             <div class="doctrine">HATE DOCTRINE</div>
             <div style="font-size:9px; color:#666; margin-top:5px;">
                 Core: Hatred as Indifference<br>
-                <em>Tap node • Drag to move • Pinch to zoom</em>
+                <em>Tap node • Drag to move • Pinch to zoom • Double-tap to fit</em>
             </div>
         </div>
         <div class="legend">
@@ -172,6 +172,7 @@ const neuralNetworkHTML = `
         </div>
         <div class="zoom-indicator" id="zoom-level">100%</div>
         <div class="controls">
+            <button class="control-btn" onclick="fitToScreen()">Fit</button>
             <button class="control-btn" onclick="resetView()">Reset</button>
             <button class="control-btn" onclick="zoomIn()">+</button>
             <button class="control-btn" onclick="zoomOut()">-</button>
@@ -310,12 +311,24 @@ function updateTransform() {
 }
 
 function zoomIn() {
+    const oldScale = scale;
     scale = Math.min(scale * 1.2, 4);
+    // Zoom toward center of screen
+    const centerX = width / 2;
+    const centerY = height / 2;
+    panX = centerX - (centerX - panX) * (scale / oldScale);
+    panY = centerY - (centerY - panY) * (scale / oldScale);
     updateTransform();
 }
 
 function zoomOut() {
+    const oldScale = scale;
     scale = Math.max(scale / 1.2, 0.3);
+    // Zoom toward center of screen
+    const centerX = width / 2;
+    const centerY = height / 2;
+    panX = centerX - (centerX - panX) * (scale / oldScale);
+    panY = centerY - (centerY - panY) * (scale / oldScale);
     updateTransform();
 }
 
@@ -325,6 +338,8 @@ function resize() {
     canvas.width = width;
     canvas.height = height;
     initNodes();
+    // Auto-fit after resize with slight delay for layout to settle
+    setTimeout(fitToScreen, 100);
 }
 
 function initNodes() {
@@ -437,10 +452,44 @@ function openModal(node) {
 function closeModal() { modal.classList.remove('active'); }
 
 function resetView() {
-    scale = 1; panX = 0; panY = 0;
+    // Auto-fit network to screen
+    scale = 1;
+    panX = 0;
+    panY = 0;
     updateTransform();
     initNodes();
 }
+
+function fitToScreen() {
+    // Calculate bounds of all nodes
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    nodes.forEach(node => {
+        minX = Math.min(minX, node.px - node.size);
+        maxX = Math.max(maxX, node.px + node.size);
+        minY = Math.min(minY, node.py - node.size);
+        maxY = Math.max(maxY, node.py + node.size);
+    });
+    
+    const contentWidth = maxX - minX + 100; // padding
+    const contentHeight = maxY - minY + 100;
+    const scaleX = width / contentWidth;
+    const scaleY = height / contentHeight;
+    scale = Math.min(scaleX, scaleY, 1.5); // max 150% zoom
+    scale = Math.max(scale, 0.4); // min 40% zoom
+    
+    // Center the content
+    const contentCenterX = (minX + maxX) / 2;
+    const contentCenterY = (minY + maxY) / 2;
+    panX = (width / 2) - (contentCenterX * scale);
+    panY = (height / 2) - (contentCenterY * scale);
+    
+    updateTransform();
+}
+
+// Auto-fit on double tap
+document.addEventListener('dblclick', () => {
+    fitToScreen();
+});
 
 modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
@@ -570,6 +619,8 @@ canvas.addEventListener('wheel', (e) => {
 
 window.addEventListener('resize', resize);
 resize(); loop();
+// Auto-fit network to screen on initial load
+setTimeout(fitToScreen, 300);
 </script>
 </body>
 </html>
