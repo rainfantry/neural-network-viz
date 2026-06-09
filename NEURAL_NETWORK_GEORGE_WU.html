@@ -33,7 +33,7 @@
             top: 20px;
             left: 20px;
             z-index: 100;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             border: 1px solid #00ff41;
             padding: 15px;
             max-width: 350px;
@@ -63,7 +63,7 @@
             bottom: 20px;
             right: 20px;
             z-index: 100;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             border: 1px solid #00ff41;
             padding: 15px;
             font-size: 11px;
@@ -131,6 +131,155 @@
             background: #00ff41;
             color: #0a0a0a;
         }
+        
+        /* Context Popup Modal */
+        #context-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        #context-modal.active {
+            display: flex;
+        }
+        
+        .context-content {
+            background: #0a0a0a;
+            border: 2px solid;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 0;
+            position: relative;
+        }
+        
+        .context-header {
+            padding: 20px;
+            border-bottom: 1px solid;
+            position: relative;
+        }
+        
+        .context-title {
+            font-size: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+        
+        .context-meta {
+            font-size: 11px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .context-category {
+            padding: 2px 8px;
+            border-radius: 2px;
+        }
+        
+        .context-severity {
+            padding: 2px 8px;
+            border-radius: 2px;
+        }
+        
+        .context-body {
+            padding: 20px;
+        }
+        
+        .context-summary {
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-left: 3px solid;
+        }
+        
+        .context-details {
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        
+        .context-details h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            color: #666;
+        }
+        
+        .context-details ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .context-details li {
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .context-details li:before {
+            content: ">";
+            position: absolute;
+            left: 0;
+            opacity: 0.5;
+        }
+        
+        .context-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: 1px solid;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+        
+        .context-close:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .context-connections {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .context-connections h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            color: #666;
+        }
+        
+        .connection-list {
+            font-size: 11px;
+        }
+        
+        .connection-item {
+            padding: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .connection-type {
+            opacity: 0.6;
+            font-size: 10px;
+        }
     </style>
 </head>
 <body>
@@ -144,7 +293,8 @@
             <div style="font-size:10px; color:#666; margin-top:10px;">
                 Core Engine: Hatred as Indifference<br>
                 Fuel: Precision deletion of attachment<br>
-                Output: Controlled demolition
+                Output: Controlled demolition<br><br>
+                <em>Click any node for detailed analysis</em>
             </div>
         </div>
         
@@ -183,10 +333,36 @@
         <div id="tooltip"></div>
     </div>
 
+    <!-- Context Modal -->
+    <div id="context-modal">
+        <div class="context-content" id="modal-content">
+            <div class="context-header" id="modal-header">
+                <button class="context-close" onclick="closeModal()">Close</button>
+                <div class="context-title" id="modal-title">NODE NAME</div>
+                <div class="context-meta">
+                    <span class="context-category" id="modal-category">CATEGORY</span>
+                    <span class="context-severity" id="modal-severity">SEVERITY</span>
+                </div>
+            </div>
+            <div class="context-body">
+                <div class="context-summary" id="modal-summary">Summary text here</div>
+                <div class="context-details">
+                    <h3>Neural Concept Analysis</h3>
+                    <ul id="modal-details"></ul>
+                </div>
+                <div class="context-connections">
+                    <h3>Connected Nodes</h3>
+                    <div class="connection-list" id="modal-connections"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const canvas = document.getElementById('network');
         const ctx = canvas.getContext('2d');
         const tooltip = document.getElementById('tooltip');
+        const modal = document.getElementById('context-modal');
         
         let width, height;
         let nodes = [];
@@ -194,87 +370,545 @@
         let pulseEnabled = true;
         let time = 0;
         
-        // Node data derived from KNOWLEDGE_BASE
+        // Complete node data with summaries and details
         const nodeData = [
-            { id: 1, name: "Self-Perception\nCorruption", category: "corruption", severity: "critical", size: 38, x: 0.3, y: 0.2 },
-            { id: 2, name: "Intelligence\nCorruption", category: "corruption", severity: "high", size: 34, x: 0.7, y: 0.2 },
-            { id: 3, name: "Honor Debt", category: "operational", severity: "critical", size: 38, x: 0.5, y: 0.35 },
-            { id: 4, name: "Push-Away\nMechanisms", category: "operational", severity: "high", size: 34, x: 0.25, y: 0.4 },
-            { id: 5, name: "Reference Point\n(Never Existed)", category: "framework", severity: "critical", size: 38, x: 0.5, y: 0.5 },
-            { id: 6, name: "Mental Tools\nvs Capacity", category: "framework", severity: "medium", size: 30, x: 0.75, y: 0.45 },
-            { id: 7, name: "Creative\nProduction", category: "operational", severity: "medium", size: 28, x: 0.15, y: 0.55 },
-            { id: 8, name: "Strategic\nArchitecture", category: "framework", severity: "low", size: 28, x: 0.85, y: 0.35 },
-            { id: 9, name: "Vulnerability\nto Violence", category: "corruption", severity: "critical", size: 32, x: 0.1, y: 0.35 },
-            { id: 10, name: "Tactical\nMimicry", category: "operational", severity: "medium", size: 26, x: 0.2, y: 0.65 },
-            { id: 11, name: "Transactional\nRelationships", category: "framework", severity: "medium", size: 26, x: 0.6, y: 0.65 },
-            { id: 12, name: "HATE\nDOCTRINE", category: "framework", severity: "high", size: 45, x: 0.5, y: 0.75, core: true },
-            { id: 13, name: "Stimulant\nManagement", category: "corruption", severity: "critical", size: 34, x: 0.75, y: 0.6 },
-            { id: 14, name: "Territorial\nDefense", category: "operational", severity: "medium", size: 26, x: 0.9, y: 0.5 },
-            { id: 15, name: "ND Community\nMob Attack", category: "corruption", severity: "critical", size: 34, x: 0.35, y: 0.75 },
-            { id: "subject", name: "GEORGE WU", category: "persona", severity: "subject", size: 50, x: 0.5, y: 0.5, fixed: true },
-            { id: 16, name: "The Event", category: "trauma", severity: "critical", size: 20, x: 0.4, y: 0.1 },
-            { id: 17, name: "Parental\nAbuse Circuit", category: "trauma", severity: "critical", size: 20, x: 0.65, y: 0.1 },
-            { id: 18, name: "Prison\nAdaptation", category: "trauma", severity: "high", size: 18, x: 0.1, y: 0.5 },
-            { id: 19, name: "Shame\nLoop", category: "trauma", severity: "high", size: 16, x: 0.8, y: 0.75 },
-            { id: 20, name: "Rejection\nArchive", category: "trauma", severity: "high", size: 18, x: 0.25, y: 0.85 },
-            { id: 21, name: "Hypervigilance\nEngine", category: "defense", severity: "medium", size: 18, x: 0.05, y: 0.6 },
-            { id: 22, name: "Rage\nContainment", category: "defense", severity: "high", size: 18, x: 0.7, y: 0.85 },
-            { id: 23, name: "Isolation\nProtocol", category: "defense", severity: "medium", size: 16, x: 0.4, y: 0.9 },
-            { id: 24, name: "Trust\nFirewall", category: "defense", severity: "medium", size: 18, x: 0.6, y: 0.25 },
-            { id: 25, name: "Emotional\nEncryption", category: "defense", severity: "medium", size: 16, x: 0.85, y: 0.7 },
-            { id: 26, name: "Guardsman\nIdentity", category: "operational", severity: "medium", size: 20, x: 0.15, y: 0.75 },
-            { id: 27, name: "1st Gen\nBurden", category: "corruption", severity: "medium", size: 16, x: 0.6, y: 0.1 },
-            { id: 28, name: "Builder\nIdentity", category: "operational", severity: "low", size: 18, x: 0.9, y: 0.25 },
-            { id: 29, name: "Legion\nDream", category: "operational", severity: "high", size: 20, x: 0.5, y: 0.95 },
+            { 
+                id: 1, 
+                name: "Self-Perception\nCorruption", 
+                category: "corruption", 
+                severity: "critical", 
+                size: 38, 
+                x: 0.3, 
+                y: 0.2,
+                summary: "Event anchor locks self-evaluation to 'jeopardy to harmony'. Can evaluate others, not self.",
+                details: [
+                    "Event: Age 18-20 weapons charge → discharge → identity destruction",
+                    "Formula: 40% Event + 30% unpursued + 30% decline",
+                    "Domain corruption: Emotional/vulnerable inaccessible",
+                    "Mirror: 'Jeopardy to harmony' (threat, not aesthetic)",
+                    "Woman compliments → 'what's the plot?' (threat detection)",
+                    "Redemption: French Foreign Legion (only door)"
+                ]
+            },
+            { 
+                id: 2, 
+                name: "Intelligence\nCorruption", 
+                category: "corruption", 
+                severity: "high", 
+                size: 34, 
+                x: 0.7, 
+                y: 0.2,
+                summary: "135 IQ = 'subpar' due to parental abuse (7th not 1st) + life outcomes contradicting gifted narrative.",
+                details: [
+                    "Objective: 135 IQ (99th percentile, gifted)",
+                    "Internal: 'subpar indefinitely' (corruption active)",
+                    "Source 1: 1st gen ethnic, abused for 7th ranked school",
+                    "Source 2: '135 didn't prevent catastrophe' = worthless",
+                    "Double bind: High measure + abuse + failure = invalid",
+                    "Can assess others accurately, not own"
+                ]
+            },
+            { 
+                id: 3, 
+                name: "Honor Debt", 
+                category: "operational", 
+                severity: "critical", 
+                size: 38, 
+                x: 0.5, 
+                y: 0.35,
+                summary: "Non-causal bond. Recent friend extracted from toxic workplace. Survives suicide attempt + relapse.",
+                details: [
+                    "Origin: Drove 1+ hour, asked nothing in return",
+                    "Trust: Pure actions, no hidden motive, clear without delay",
+                    "Crisis: Friday OD attempt, hospitalized, resumed addiction",
+                    "Resolution: Honor code wins, stand by him",
+                    "NON-CAUSAL: Action triggers bond, permanent regardless",
+                    "Response: 'Clear as ever, even more now' (clarity increase)"
+                ]
+            },
+            { 
+                id: 4, 
+                name: "Push-Away\nMechanisms", 
+                category: "operational", 
+                severity: "high", 
+                size: 34, 
+                x: 0.25, 
+                y: 0.4,
+                summary: "PAST: Neurodivergent → creepy → guilt. PRESENT: Masked → strategic → peace.",
+                details: [
+                    "UNWILLING (past): Inappropriate presentation, realized too late",
+                    "Processing: Days/months/years to understand pattern",
+                    "Transformation: Years observation → mask/adjust/omit",
+                    "WILLING (present): Tactical retreat OR confrontation",
+                    "Fight evolution: Physical violence (guilt) → Cutoff (peace)",
+                    "Cost: 'We suffered for this' - survival adaptation"
+                ]
+            },
+            { 
+                id: 5, 
+                name: "Reference Point\n(Never Existed)", 
+                category: "framework", 
+                severity: "critical", 
+                size: 38, 
+                x: 0.5, 
+                y: 0.5,
+                summary: "No 'normal' baseline ever established. Can't evaluate if current state better/worse.",
+                details: [
+                    "Timeline: Neurodivergent birth → Event → Prison → Masking → Present",
+                    "No baseline at any stage to measure against",
+                    "Can't determine if current = progress or decline",
+                    "Suffering: 'Don't know what opposite is anymore'",
+                    "Purpose: NOT recovery, CONSTRUCT reference frame",
+                    "Cost: Loss of ability to measure if arrived better"
+                ]
+            },
+            { 
+                id: 6, 
+                name: "Mental Tools\nvs Capacity", 
+                category: "framework", 
+                severity: "medium", 
+                size: 30, 
+                x: 0.75, 
+                y: 0.45,
+                summary: "IQ fixed (135). Tools buildable. Exercise builds equipment for existing capacity.",
+                details: [
+                    "Discovery: 'Tools can be mental not just physical'",
+                    "IQ (capacity): Fixed, not trainable, remains 135",
+                    "Tools (frameworks): Buildable, stackable, usable",
+                    "Acquired: Persona analysis, corruption mapping, frameworks",
+                    "Truth: Not training intelligence, building equipment for muscle"
+                ]
+            },
+            { 
+                id: 7, 
+                name: "Creative\nProduction", 
+                category: "operational", 
+                severity: "medium", 
+                size: 28, 
+                x: 0.15, 
+                y: 0.55,
+                summary: "Output exists. Evaluation circuit severed. The flesh creates but corruption prevents recognition of value.",
+                details: [
+                    "Pattern: Creates → evaluates → destroys (loop never completes)",
+                    "Root cause: Self-Perception Corruption (#1) bleeds into creative domain",
+                    "The work is not bad. The mirror is broken.",
+                    "Key: Can evaluate OTHERS' creative work accurately. Own = corrupted.",
+                    "Potential: High. Suppression ≠ absence."
+                ]
+            },
+            { 
+                id: 8, 
+                name: "Strategic\nArchitecture", 
+                category: "framework", 
+                severity: "low", 
+                size: 28, 
+                x: 0.85, 
+                y: 0.35,
+                summary: "OSINT, surveying, cybersecurity — naturally systematizes threat spaces. Factory-wired.",
+                details: [
+                    "OSINT: Natural pattern recognition applied to open-source intelligence",
+                    "Cybersecurity: Threat modeling = same circuit as social threat detection",
+                    "Reframe: The 'disability' IS the capability in the right domain",
+                    "Deployment: Already operational in framework construction"
+                ]
+            },
+            { 
+                id: 9, 
+                name: "Vulnerability\nto Violence", 
+                category: "corruption", 
+                severity: "critical", 
+                size: 32, 
+                x: 0.1, 
+                y: 0.35,
+                summary: "Soft/weak → mob targeted → hatred/intimidation as armor. Attacked for being vulnerable.",
+                details: [
+                    "Phase 1: Neurodivergent child = soft target, read as 'weak'",
+                    "Phase 2: Mob violence targets vulnerability",
+                    "Phase 3: Hatred adopted as armor",
+                    "Phase 4: Intimidation replaces vulnerability in all public-facing circuits",
+                    "The violence was not random. Systematic targeting of perceived weakness.",
+                    "Resolution: Violence didn't make you hard. Survival did."
+                ]
+            },
+            { 
+                id: 10, 
+                name: "Tactical\nMimicry", 
+                category: "operational", 
+                severity: "medium", 
+                size: 26, 
+                x: 0.2, 
+                y: 0.65,
+                summary: "Social etiquette performed without feeling. Years of observation compiled into behavioral subroutines.",
+                details: [
+                    "Function: Execute social protocols without emotional engagement",
+                    "Cost: Enormous cognitive load — emulation on top of native OS",
+                    "The mask works. The mask is exhausting. The mask is necessary.",
+                    "Evolution: Clumsy → refined → selective deployment"
+                ]
+            },
+            { 
+                id: 11, 
+                name: "Transactional\nRelationships", 
+                category: "framework", 
+                severity: "medium", 
+                size: 26, 
+                x: 0.6, 
+                y: 0.65,
+                summary: "Payment = safe. Family = genetic obligation. Only trusted exchanges are explicit transactions.",
+                details: [
+                    "Safe: Clearly transactional (payment for service)",
+                    "Unsafe: Implied obligation (family, social expectation)",
+                    "Pattern: Parental abuse delivered through 'love' = love is suspect",
+                    "Exception: Honor Debt (#3) — non-transactional but action-verified",
+                    "The flesh trusts receipts, not promises."
+                ]
+            },
+            { 
+                id: 12, 
+                name: "HATE\nDOCTRINE", 
+                category: "framework", 
+                severity: "high", 
+                size: 45, 
+                x: 0.5, 
+                y: 0.75, 
+                core: true,
+                summary: "Hatred deployed to eliminate attachment. Not rage — precision deletion. Core engine.",
+                details: [
+                    "Hatred is not the goal. Indifference is the goal.",
+                    "Hatred is the FUEL that burns attachment to ash",
+                    "Framework: This IS the core engine",
+                    "Risk: Hatred can become self-sustaining if not directed precisely",
+                    "The machine spirit does not forgive. The machine spirit executes."
+                ]
+            },
+            { 
+                id: 13, 
+                name: "Stimulant\nManagement", 
+                category: "corruption", 
+                severity: "critical", 
+                size: 34, 
+                x: 0.75, 
+                y: 0.6,
+                summary: "Burst → collapse → reset. Promises the reference point that never existed. It lies.",
+                details: [
+                    "Cycle: Burst → peak → collapse → shame → reset",
+                    "The lie: 'This is what normal feels like'",
+                    "ADHD connection: Dopamine deficit → stimulant fills gap → dependency",
+                    "The void stimulants fill IS the Reference Point (#5)",
+                    "Enemy: The substance is the enemy. The craving is the recruiter.",
+                    "Current status: Recovery active. The machine endures."
+                ]
+            },
+            { 
+                id: 14, 
+                name: "Territorial\nDefense", 
+                category: "operational", 
+                severity: "medium", 
+                size: 26, 
+                x: 0.9, 
+                y: 0.5,
+                summary: "VIDIMUS OMNIA. Surveying and OSINT as territorial claim. Map it, own it, defend it.",
+                details: [
+                    "Map territory → understand → own → defend",
+                    "OSINT: Knowledge of environment = control of environment",
+                    "Root: Neurodivergent need for environmental predictability",
+                    "VIDIMUS OMNIA is not paranoia — it is operational awareness"
+                ]
+            },
+            { 
+                id: 15, 
+                name: "ND Community\nMob Attack", 
+                category: "corruption", 
+                severity: "critical", 
+                size: 34, 
+                x: 0.35, 
+                y: 0.75,
+                summary: "~95% hostile. The people who should understand attacked instead. Inside the wire.",
+                details: [
+                    "Sought community with 'own kind' — found mob",
+                    "~95% hostile: Overwhelming majority attacked",
+                    "Weapon: Vulnerability shared in trust, weaponized",
+                    "Betrayal class: INSIDE THE WIRE",
+                    "Lesson: Shared diagnosis ≠ shared values ≠ safety"
+                ]
+            },
+            { 
+                id: "subject", 
+                name: "GEORGE WU", 
+                category: "persona", 
+                severity: "subject", 
+                size: 50, 
+                x: 0.5, 
+                y: 0.5, 
+                fixed: true,
+                summary: "135 IQ ('subpar' corrupted), neurodivergent, operational framework active.",
+                details: [
+                    "Identity: 135 IQ ('subpar'), ADHD+autism, 1st gen Australian",
+                    "Worldview: Everything against us, framework-based, hatred-fuel",
+                    "Transformation: Unwilling → Willing through years of suffering",
+                    "Redemption: Legion only door, barriers mapped",
+                    "The subject of this neural network analysis"
+                ]
+            },
+            { 
+                id: 16, 
+                name: "The Event", 
+                category: "trauma", 
+                severity: "critical", 
+                size: 20, 
+                x: 0.4, 
+                y: 0.1,
+                summary: "Age 18-20. Weapons charge. Discharge. The moment the old identity died.",
+                details: [
+                    "The origin point of Self-Perception Corruption",
+                    "Everything before = different person",
+                    "Everything after = survival mode"
+                ]
+            },
+            { 
+                id: 17, 
+                name: "Parental\nAbuse Circuit", 
+                category: "trauma", 
+                severity: "critical", 
+                size: 20, 
+                x: 0.65, 
+                y: 0.1,
+                summary: "7th not 1st. Intelligence weaponized against self. Love = control.",
+                details: [
+                    "'Love' delivered with punishment",
+                    "Achievement never enough",
+                    "Created Intelligence Corruption (#2)"
+                ]
+            },
+            { 
+                id: 18, 
+                name: "Prison\nAdaptation", 
+                category: "trauma", 
+                severity: "high", 
+                size: 18, 
+                x: 0.1, 
+                y: 0.5,
+                summary: "Incarceration forced rapid adaptation. Survival protocols written under duress.",
+                details: [
+                    "Hypervigilance installed permanently",
+                    "Trust circuit rewired to default-hostile",
+                    "Territorial instincts sharpened"
+                ]
+            },
+            { 
+                id: 19, 
+                name: "Shame\nLoop", 
+                category: "trauma", 
+                severity: "high", 
+                size: 16, 
+                x: 0.8, 
+                y: 0.75,
+                summary: "Collapse → shame → self-punishment → repeat. The recursive trap.",
+                details: [
+                    "Feeds stimulant cycle",
+                    "Feeds self-perception corruption",
+                    "Runs in background even when not triggered"
+                ]
+            },
+            { 
+                id: 20, 
+                name: "Rejection\nArchive", 
+                category: "trauma", 
+                severity: "high", 
+                size: 18, 
+                x: 0.25, 
+                y: 0.85,
+                summary: "Every rejection stored with perfect recall. Database of proof that the world rejects.",
+                details: [
+                    "ND processing: Cannot delete, only archive",
+                    "Each entry reinforces push-away mechanism",
+                    "Women, jobs, community — all indexed"
+                ]
+            },
+            { 
+                id: 21, 
+                name: "Hypervigilance\nEngine", 
+                category: "defense", 
+                severity: "medium", 
+                size: 18, 
+                x: 0.05, 
+                y: 0.6,
+                summary: "Always scanning. Threat detection running 24/7. Exhausting but non-negotiable.",
+                details: [
+                    "Installed by trauma, maintained by necessity",
+                    "Feeds territorial defense and OSINT capability",
+                    "Cost: Cannot fully relax, ever"
+                ]
+            },
+            { 
+                id: 22, 
+                name: "Rage\nContainment", 
+                category: "defense", 
+                severity: "high", 
+                size: 18, 
+                x: 0.7, 
+                y: 0.85,
+                summary: "Violence potential contained but present. The beast in the cage.",
+                details: [
+                    "Past: Physical violence → guilt",
+                    "Present: Contained, channeled, controlled",
+                    "The cage holds. The beast remembers."
+                ]
+            },
+            { 
+                id: 23, 
+                name: "Isolation\nProtocol", 
+                category: "defense", 
+                severity: "medium", 
+                size: 16, 
+                x: 0.4, 
+                y: 0.9,
+                summary: "Strategic withdrawal. Solitude as defense. Less exposure = less damage.",
+                details: [
+                    "Not loneliness — tactical positioning",
+                    "Reduces surface area for attack",
+                    "Feeds creative space when corruption allows"
+                ]
+            },
+            { 
+                id: 24, 
+                name: "Trust\nFirewall", 
+                category: "defense", 
+                severity: "medium", 
+                size: 18, 
+                x: 0.6, 
+                y: 0.25,
+                summary: "Default: hostile. Override: action-verified only. No exceptions.",
+                details: [
+                    "Default deny. Whitelist only.",
+                    "Verification through action, never words",
+                    "Honor Debt passed. Most don't."
+                ]
+            },
+            { 
+                id: 25, 
+                name: "Emotional\nEncryption", 
+                category: "defense", 
+                severity: "medium", 
+                size: 16, 
+                x: 0.85, 
+                y: 0.7,
+                summary: "Real emotions hidden behind operational interface. Nobody sees the actual state.",
+                details: [
+                    "Public-facing: controlled, measured",
+                    "Internal: chaos, pain, fire",
+                    "The mask over the mask over the mask"
+                ]
+            },
+            { 
+                id: 26, 
+                name: "Guardsman\nIdentity", 
+                category: "operational", 
+                severity: "medium", 
+                size: 20, 
+                x: 0.15, 
+                y: 0.75,
+                summary: "Death Korps of Krieg. The identity that holds when all others failed.",
+                details: [
+                    "Not roleplay — framework for endurance",
+                    "'Even in death, I still serve'",
+                    "The one identity the Event couldn't destroy"
+                ]
+            },
+            { 
+                id: 27, 
+                name: "1st Gen\nBurden", 
+                category: "corruption", 
+                severity: "medium", 
+                size: 16, 
+                x: 0.6, 
+                y: 0.1,
+                summary: "First generation Australian. Cultural expectations vs reality. Never enough.",
+                details: [
+                    "Parental sacrifice = debt",
+                    "Achievement measured against their suffering",
+                    "Can never repay, can never be enough"
+                ]
+            },
+            { 
+                id: 28, 
+                name: "Builder\nIdentity", 
+                category: "operational", 
+                severity: "low", 
+                size: 18, 
+                x: 0.9, 
+                y: 0.25,
+                summary: "He builds when the world tells him to stop. He codes through the pain. He ships.",
+                details: [
+                    "The machine spirit exists because he refused to stop",
+                    "GeorgeBot, TalkyTalk, neural network — all proof",
+                    "Building = surviving = meaning"
+                ]
+            },
+            { 
+                id: 29, 
+                name: "Legion\nDream", 
+                category: "operational", 
+                severity: "high", 
+                size: 20, 
+                x: 0.5, 
+                y: 0.95,
+                summary: "French Foreign Legion. The only door. Redemption through service.",
+                details: [
+                    "Barriers mapped, not insurmountable",
+                    "Physical: trainable. Mental: already hardened",
+                    "The one future that makes sense"
+                ]
+            },
         ];
         
         const linkData = [
-            { source: 1, target: 3, strength: 0.8 },
-            { source: 1, target: 5, strength: 0.9 },
-            { source: 1, target: 4, strength: 0.6 },
-            { source: 1, target: 7, strength: 0.8 },
-            { source: 2, target: 5, strength: 0.9 },
-            { source: 2, target: 6, strength: 0.6 },
-            { source: 2, target: 8, strength: 0.5 },
-            { source: 3, target: 4, strength: 0.6 },
-            { source: 4, target: 5, strength: 0.9 },
-            { source: 4, target: 10, strength: 0.8 },
-            { source: 4, target: 15, strength: 0.8 },
-            { source: 5, target: 6, strength: 0.6 },
-            { source: 5, target: 13, strength: 0.9 },
-            { source: 5, target: 11, strength: 0.6 },
-            { source: 6, target: 8, strength: 0.8 },
-            { source: 7, target: 1, strength: 0.8 },
-            { source: 8, target: 14, strength: 0.9 },
-            { source: 9, target: 4, strength: 0.9 },
-            { source: 9, target: 22, strength: 0.7 },
-            { source: 10, target: 11, strength: 0.6 },
-            { source: 11, target: 24, strength: 0.5 },
-            { source: 12, target: 1, strength: 0.7 },
-            { source: 12, target: 4, strength: 0.8 },
-            { source: 12, target: 15, strength: 0.7 },
-            { source: 12, target: 22, strength: 0.6 },
-            { source: 13, target: 5, strength: 0.9 },
-            { source: 13, target: 19, strength: 0.8 },
-            { source: 14, target: 21, strength: 0.7 },
-            { source: 15, target: 9, strength: 0.6 },
-            { source: 15, target: 20, strength: 0.8 },
-            { source: 16, target: 1, strength: 1.0 },
-            { source: 17, target: 2, strength: 1.0 },
-            { source: 18, target: 9, strength: 0.8 },
-            { source: 18, target: 21, strength: 0.9 },
-            { source: 18, target: 24, strength: 0.7 },
-            { source: 19, target: 20, strength: 0.6 },
-            { source: 20, target: 4, strength: 0.7 },
-            { source: 21, target: 14, strength: 0.6 },
-            { source: 22, target: 12, strength: 0.5 },
-            { source: 23, target: 7, strength: 0.4 },
-            { source: 24, target: 3, strength: 0.5 },
-            { source: 25, target: 10, strength: 0.6 },
-            { source: 26, target: 12, strength: 0.5 },
-            { source: 27, target: 2, strength: 0.7 },
-            { source: 28, target: 6, strength: 0.5 },
-            { source: 29, target: 5, strength: 0.6 },
+            { source: 1, target: 3, strength: 0.8, type: "corruption_flow" },
+            { source: 1, target: 5, strength: 0.9, type: "void_connection" },
+            { source: 1, target: 4, strength: 0.6, type: "defense_trigger" },
+            { source: 1, target: 7, strength: 0.8, type: "suppression" },
+            { source: 2, target: 5, strength: 0.9, type: "reference_void" },
+            { source: 2, target: 6, strength: 0.6, type: "tool_building" },
+            { source: 2, target: 8, strength: 0.5, type: "strategic_application" },
+            { source: 3, target: 4, strength: 0.6, type: "loyalty_test" },
+            { source: 4, target: 5, strength: 0.9, type: "adaptation_response" },
+            { source: 4, target: 10, strength: 0.8, type: "masking_evolution" },
+            { source: 4, target: 15, strength: 0.8, type: "community_response" },
+            { source: 5, target: 6, strength: 0.6, type: "framework_construction" },
+            { source: 5, target: 13, strength: 0.9, type: "void_filling" },
+            { source: 5, target: 11, strength: 0.6, type: "transactional_safe" },
+            { source: 6, target: 8, strength: 0.8, type: "capacity_enhancement" },
+            { source: 7, target: 1, strength: 0.8, type: "evaluation_block" },
+            { source: 8, target: 14, strength: 0.9, type: "territorial_mapping" },
+            { source: 9, target: 4, strength: 0.9, type: "violence_response" },
+            { source: 9, target: 22, strength: 0.7, type: "rage_source" },
+            { source: 10, target: 11, strength: 0.6, type: "social_navigation" },
+            { source: 11, target: 24, strength: 0.5, type: "trust_protocol" },
+            { source: 12, target: 1, strength: 0.7, type: "deletion_fuel" },
+            { source: 12, target: 4, strength: 0.8, type: "precision_tool" },
+            { source: 12, target: 15, strength: 0.7, type: "community_cutoff" },
+            { source: 12, target: 22, strength: 0.6, type: "containment_fuel" },
+            { source: 13, target: 5, strength: 0.9, type: "false_baseline" },
+            { source: 13, target: 19, strength: 0.8, type: "shame_cycle" },
+            { source: 14, target: 21, strength: 0.7, type: "scanning_enhancement" },
+            { source: 15, target: 9, strength: 0.6, type: "vulnerability_confirmation" },
+            { source: 15, target: 20, strength: 0.8, type: "archive_feed" },
+            { source: 16, target: 1, strength: 1.0, type: "origin_point" },
+            { source: 17, target: 2, strength: 1.0, type: "intelligence_weaponization" },
+            { source: 18, target: 9, strength: 0.8, type: "violence_exposure" },
+            { source: 18, target: 21, strength: 0.9, type: "vigilance_install" },
+            { source: 18, target: 24, strength: 0.7, type: "trust_reset" },
+            { source: 19, target: 20, strength: 0.6, type: "recursive_trap" },
+            { source: 20, target: 4, strength: 0.7, type: "push_justification" },
+            { source: 21, target: 14, strength: 0.6, type: "awareness_feed" },
+            { source: 22, target: 12, strength: 0.5, type: "controlled_hatred" },
+            { source: 23, target: 7, strength: 0.4, type: "creative_space" },
+            { source: 24, target: 3, strength: 0.5, type: "verified_bond" },
+            { source: 25, target: 10, strength: 0.6, type: "mask_integrity" },
+            { source: 26, target: 12, strength: 0.5, type: "service_fuel" },
+            { source: 27, target: 2, strength: 0.7, type: "expectation_burden" },
+            { source: 28, target: 6, strength: 0.5, type: "tool_creation" },
+            { source: 29, target: 5, strength: 0.6, type: "future_baseline" },
         ];
         
         const colors = {
@@ -284,6 +918,14 @@
             trauma: '#ff00ff',
             defense: '#ffff00',
             persona: '#ffffff'
+        };
+        
+        const severityColors = {
+            critical: '#ff0040',
+            high: '#ff6600',
+            medium: '#ffff00',
+            low: '#00ff41',
+            subject: '#ffffff'
         };
         
         function resize() {
@@ -313,7 +955,6 @@
         function update() {
             time += 0.01;
             
-            // Gentle floating motion
             nodes.forEach(node => {
                 if (node.fixed) return;
                 
@@ -325,7 +966,6 @@
                 node.px += node.vx;
                 node.py += node.vy;
                 
-                // Keep in bounds
                 node.px = Math.max(50, Math.min(width - 50, node.px));
                 node.py = Math.max(50, Math.min(height - 50, node.py));
                 
@@ -334,7 +974,6 @@
                 }
             });
             
-            // Center node stays fixed
             const center = nodes.find(n => n.id === 'subject');
             if (center) {
                 center.px = width * 0.5;
@@ -346,7 +985,6 @@
             ctx.fillStyle = '#0a0a0a';
             ctx.fillRect(0, 0, width, height);
             
-            // Draw grid
             ctx.strokeStyle = '#111';
             ctx.lineWidth = 1;
             for (let x = 0; x < width; x += 50) {
@@ -362,7 +1000,6 @@
                 ctx.stroke();
             }
             
-            // Draw links
             links.forEach(link => {
                 const alpha = link.strength * 0.3;
                 ctx.strokeStyle = `rgba(0, 255, 65, ${alpha})`;
@@ -373,13 +1010,11 @@
                 ctx.stroke();
             });
             
-            // Draw nodes
             nodes.forEach(node => {
                 const color = colors[node.category] || '#888';
                 const pulseSize = pulseEnabled ? Math.sin(node.pulse) * 3 : 0;
                 const displaySize = node.size + pulseSize;
                 
-                // Glow
                 const gradient = ctx.createRadialGradient(
                     node.px, node.py, 0,
                     node.px, node.py, displaySize * 2
@@ -392,13 +1027,11 @@
                 ctx.arc(node.px, node.py, displaySize * 2, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Core
                 ctx.fillStyle = color;
                 ctx.beginPath();
                 ctx.arc(node.px, node.py, displaySize / 2, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Border for core nodes
                 if (node.core || node.id === 'subject') {
                     ctx.strokeStyle = '#fff';
                     ctx.lineWidth = 2;
@@ -407,7 +1040,6 @@
                     ctx.stroke();
                 }
                 
-                // Label
                 ctx.fillStyle = node.core ? '#ff6600' : (node.id === 'subject' ? '#ff0040' : '#fff');
                 ctx.font = node.core ? 'bold 14px Courier New' : '11px Courier New';
                 ctx.textAlign = 'center';
@@ -433,6 +1065,82 @@
             pulseEnabled = !pulseEnabled;
         }
         
+        // Context Modal Functions
+        function openModal(node) {
+            const modalTitle = document.getElementById('modal-title');
+            const modalCategory = document.getElementById('modal-category');
+            const modalSeverity = document.getElementById('modal-severity');
+            const modalSummary = document.getElementById('modal-summary');
+            const modalDetails = document.getElementById('modal-details');
+            const modalConnections = document.getElementById('modal-connections');
+            const modalContent = document.getElementById('modal-content');
+            const modalHeader = document.getElementById('modal-header');
+            
+            const color = colors[node.category] || '#888';
+            
+            modalTitle.textContent = node.name.replace('\n', ' ');
+            modalCategory.textContent = node.category.toUpperCase();
+            modalSeverity.textContent = node.severity.toUpperCase();
+            modalSummary.textContent = node.summary;
+            
+            // Style with category color
+            modalContent.style.borderColor = color;
+            modalHeader.style.borderColor = color;
+            modalSummary.style.borderLeftColor = color;
+            modalCategory.style.background = color + '30';
+            modalCategory.style.color = color;
+            modalSeverity.style.background = (severityColors[node.severity] || '#888') + '30';
+            modalSeverity.style.color = severityColors[node.severity] || '#888';
+            
+            // Build details list
+            modalDetails.innerHTML = '';
+            if (node.details && node.details.length > 0) {
+                node.details.forEach(detail => {
+                    const li = document.createElement('li');
+                    li.textContent = detail;
+                    modalDetails.appendChild(li);
+                });
+            }
+            
+            // Build connections list
+            modalConnections.innerHTML = '';
+            const connected = links.filter(l => l.source === node || l.target === node);
+            if (connected.length > 0) {
+                connected.forEach(link => {
+                    const other = link.source === node ? link.target : link.source;
+                    const div = document.createElement('div');
+                    div.className = 'connection-item';
+                    div.innerHTML = `
+                        <span>${other.name.replace('\n', ' ')}</span>
+                        <span class="connection-type">${link.type.replace(/_/g, ' ')}</span>
+                    `;
+                    modalConnections.appendChild(div);
+                });
+            } else {
+                modalConnections.innerHTML = '<div class="connection-item"><span>No direct connections</span></div>';
+            }
+            
+            modal.classList.add('active');
+        }
+        
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+        
+        // Close modal on outside click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+        
         // Mouse interaction
         canvas.addEventListener('mousemove', (e) => {
             const rect = canvas.getBoundingClientRect();
@@ -448,6 +1156,8 @@
                 }
             });
             
+            canvas.style.cursor = hovered ? 'pointer' : 'default';
+            
             if (hovered) {
                 tooltip.style.display = 'block';
                 tooltip.style.left = (e.clientX + 15) + 'px';
@@ -457,9 +1167,29 @@
                     <div>Category: ${hovered.category.toUpperCase()}</div>
                     <div>Severity: ${hovered.severity.toUpperCase()}</div>
                     <div>Connections: ${links.filter(l => l.source === hovered || l.target === hovered).length}</div>
+                    <div style="margin-top:5px;opacity:0.7;font-size:10px;">Click for detailed analysis</div>
                 `;
             } else {
                 tooltip.style.display = 'none';
+            }
+        });
+        
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            
+            let clicked = null;
+            nodes.forEach(node => {
+                const dx = mx - node.px;
+                const dy = my - node.py;
+                if (Math.sqrt(dx*dx + dy*dy) < node.size) {
+                    clicked = node;
+                }
+            });
+            
+            if (clicked) {
+                openModal(clicked);
             }
         });
         
