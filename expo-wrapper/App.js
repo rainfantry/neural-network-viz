@@ -1,25 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, StatusBar, Platform } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { StyleSheet, View, StatusBar, Dimensions } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { GestureHandlerRootView, PanGestureHandler, PinchGestureHandler, State } from 'react-native-gesture-handler';
+import Animated, { useAnimatedGestureHandler, useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 
-// Inline the HTML content for maximum compatibility
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+
+// Neural Network HTML with pinch/zoom/pan support
 const neuralNetworkHTML = `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
         body {
             background: #0a0a0a;
             color: #00ff41;
             font-family: 'Courier New', monospace;
             overflow: hidden;
             touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
         }
-        #canvas-container { position: relative; width: 100vw; height: 100vh; }
-        canvas { display: block; }
+        #canvas-container { 
+            position: fixed; 
+            top: 0; left: 0;
+            width: 100vw; 
+            height: 100vh;
+            transform-origin: 0 0;
+        }
+        canvas { display: block; touch-action: none; }
         .overlay {
             position: absolute;
             top: 10px;
@@ -30,6 +42,7 @@ const neuralNetworkHTML = `
             padding: 10px;
             max-width: 280px;
             font-size: 11px;
+            pointer-events: none;
         }
         .overlay h1 { font-size: 12px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
         .overlay .subject { color: #ff0040; font-weight: bold; }
@@ -43,6 +56,7 @@ const neuralNetworkHTML = `
             border: 1px solid #00ff41;
             padding: 10px;
             font-size: 9px;
+            pointer-events: none;
         }
         .legend-item { margin: 3px 0; display: flex; align-items: center; }
         .legend-color { width: 10px; height: 10px; margin-right: 5px; border-radius: 2px; }
@@ -108,6 +122,33 @@ const neuralNetworkHTML = `
         .context-connections h3 { font-size: 10px; text-transform: uppercase; color: #666; margin-bottom: 8px; }
         .connection-item { padding: 4px 0; display: flex; justify-content: space-between; font-size: 10px; }
         .connection-type { opacity: 0.6; font-size: 9px; }
+        .controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 100;
+            display: flex;
+            gap: 5px;
+        }
+        .control-btn {
+            background: rgba(0,0,0,0.9);
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            padding: 8px 12px;
+            font-family: inherit;
+            font-size: 10px;
+            cursor: pointer;
+        }
+        .zoom-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.9);
+            border: 1px solid #00ff41;
+            padding: 5px 10px;
+            font-size: 10px;
+            z-index: 100;
+        }
     </style>
 </head>
 <body>
@@ -119,7 +160,7 @@ const neuralNetworkHTML = `
             <div class="doctrine">HATE DOCTRINE</div>
             <div style="font-size:9px; color:#666; margin-top:5px;">
                 Core: Hatred as Indifference<br>
-                <em>Tap any node for analysis</em>
+                <em>Tap node • Drag to move • Pinch to zoom</em>
             </div>
         </div>
         <div class="legend">
@@ -129,6 +170,12 @@ const neuralNetworkHTML = `
             <div class="legend-item"><div class="legend-color" style="background:#ff00ff"></div><span>TRAUMA</span></div>
             <div class="legend-item"><div class="legend-color" style="background:#ffff00"></div><span>DEFENSE</span></div>
             <div class="legend-item"><div class="legend-color" style="background:#ffffff"></div><span>PERSONA</span></div>
+        </div>
+        <div class="zoom-indicator" id="zoom-level">100%</div>
+        <div class="controls">
+            <button class="control-btn" onclick="resetView()">Reset</button>
+            <button class="control-btn" onclick="zoomIn()">+</button>
+            <button class="control-btn" onclick="zoomOut()">-</button>
         </div>
         <div id="tooltip"></div>
     </div>
@@ -160,8 +207,19 @@ const canvas = document.getElementById('network');
 const ctx = canvas.getContext('2d');
 const tooltip = document.getElementById('tooltip');
 const modal = document.getElementById('context-modal');
+const container = document.getElementById('canvas-container');
+const zoomIndicator = document.getElementById('zoom-level');
 
 let width, height, nodes = [], links = [], pulseEnabled = true, time = 0;
+
+// Zoom/Pan state
+let scale = 1;
+let panX = 0;
+let panY = 0;
+let isDragging = false;
+let dragNode = null;
+let lastTouchDist = 0;
+let isPinching = false;
 
 const nodeData = [
     { id: 1, name: "Self-Perception\\nCorruption", category: "corruption", severity: "critical", size: 32, x: 0.3, y: 0.2, summary: "Event anchor locks self-evaluation to 'jeopardy to harmony'.", details: ["Event: Age 18-20 weapons charge → discharge → identity destruction", "Domain corruption: Emotional/vulnerable inaccessible", "Mirror: 'Jeopardy to harmony' (threat, not aesthetic)", "Redemption: French Foreign Legion (only door)"] },
@@ -253,6 +311,21 @@ const severityColors = {
     critical: '#ff0040', high: '#ff6600', medium: '#ffff00', low: '#00ff41', subject: '#ffffff'
 };
 
+function updateTransform() {
+    container.style.transform = 'translate(' + panX + 'px, ' + panY + 'px) scale(' + scale + ')';
+    zoomIndicator.textContent = Math.round(scale * 100) + '%';
+}
+
+function zoomIn() {
+    scale = Math.min(scale * 1.2, 4);
+    updateTransform();
+}
+
+function zoomOut() {
+    scale = Math.max(scale / 1.2, 0.3);
+    updateTransform();
+}
+
 function resize() {
     width = window.innerWidth;
     height = window.innerHeight;
@@ -288,6 +361,14 @@ function update() {
     });
     const center = nodes.find(n => n.id === 'subject');
     if (center) { center.px = width * 0.5; center.py = height * 0.5; }
+}
+
+function toScreen(x, y) {
+    return { x: (x + panX) * scale, y: (y + panY) * scale };
+}
+
+function toWorld(x, y) {
+    return { x: x / scale - panX, y: y / scale - panY };
 }
 
 function draw() {
@@ -366,27 +447,94 @@ function openModal(node) {
 
 function closeModal() { modal.classList.remove('active'); }
 
+function resetView() {
+    scale = 1; panX = 0; panY = 0;
+    updateTransform();
+    initNodes();
+}
+
 modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
+// Touch handling for pinch/zoom/pan
 canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    const t = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const mx = t.clientX - rect.left, my = t.clientY - rect.top;
-    nodes.forEach(node => {
-        const dx = mx - node.px, dy = my - node.py;
-        if (Math.sqrt(dx*dx + dy*dy) < node.size + 10) {
-            openModal(node);
+    if (e.touches.length === 2) {
+        isPinching = true;
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastTouchDist = Math.sqrt(dx * dx + dy * dy);
+    } else if (e.touches.length === 1) {
+        const t = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const worldPos = toWorld(t.clientX - rect.left, t.clientY - rect.top);
+        
+        let clickedNode = null;
+        nodes.forEach(node => {
+            const dx = worldPos.x - node.px;
+            const dy = worldPos.y - node.py;
+            if (Math.sqrt(dx*dx + dy*dy) < node.size + 10) {
+                clickedNode = node;
+            }
+        });
+        
+        if (clickedNode) {
+            dragNode = clickedNode;
+            isDragging = true;
+        } else {
+            isDragging = true;
+            dragNode = null;
         }
-    });
+    }
 }, { passive: false });
 
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (e.touches.length === 2 && isPinching) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const scaleFactor = dist / lastTouchDist;
+        scale = Math.max(0.3, Math.min(4, scale * scaleFactor));
+        lastTouchDist = dist;
+        updateTransform();
+    } else if (e.touches.length === 1 && isDragging) {
+        const t = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const worldPos = toWorld(t.clientX - rect.left, t.clientY - rect.top);
+        
+        if (dragNode && !dragNode.fixed) {
+            dragNode.px = worldPos.x;
+            dragNode.py = worldPos.y;
+            dragNode.vx = 0;
+            dragNode.vy = 0;
+        } else if (!dragNode) {
+            // Panning
+            panX += e.movementX / scale || 0;
+            panY += e.movementY / scale || 0;
+            updateTransform();
+        }
+    }
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+    if (e.touches.length === 0) {
+        if (isDragging && dragNode) {
+            // Check if it was a tap (minimal movement)
+            openModal(dragNode);
+        }
+        isDragging = false;
+        dragNode = null;
+        isPinching = false;
+    }
+}, { passive: false });
+
+// Mouse click handling
 canvas.addEventListener('click', (e) => {
     const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    const worldPos = toWorld(e.clientX - rect.left, e.clientY - rect.top);
     let clicked = null;
     nodes.forEach(node => {
-        const dx = mx - node.px, dy = my - node.py;
+        const dx = worldPos.x - node.px;
+        const dy = worldPos.y - node.py;
         if (Math.sqrt(dx*dx + dy*dy) < node.size + 10) clicked = node;
     });
     if (clicked) openModal(clicked);
@@ -394,10 +542,11 @@ canvas.addEventListener('click', (e) => {
 
 canvas.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    const worldPos = toWorld(e.clientX - rect.left, e.clientY - rect.top);
     let hovered = null;
     nodes.forEach(node => {
-        const dx = mx - node.px, dy = my - node.py;
+        const dx = worldPos.x - node.px;
+        const dy = worldPos.y - node.py;
         if (Math.sqrt(dx*dx + dy*dy) < node.size + 10) hovered = node;
     });
     if (hovered) {
@@ -405,6 +554,14 @@ canvas.addEventListener('mousemove', (e) => {
         tooltip.innerHTML = '<div class="tooltip-title">' + hovered.name.replace('\\n', ' ') + '</div><div>' + hovered.category.toUpperCase() + '</div>';
     } else tooltip.style.display = 'none';
 });
+
+// Wheel zoom
+canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    scale = Math.max(0.3, Math.min(4, scale * delta));
+    updateTransform();
+}, { passive: false });
 
 window.addEventListener('resize', resize);
 resize(); loop();
@@ -414,19 +571,69 @@ resize(); loop();
 `;
 
 export default function App() {
+  const webviewRef = useRef(null);
+  const [zoom, setZoom] = useState(1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
+
+  const panGesture = useAnimatedGestureHandler({
+    onStart: (_, ctx) => {
+      ctx.startX = translateX.value;
+      ctx.startY = translateY.value;
+    },
+    onActive: (event, ctx) => {
+      translateX.value = ctx.startX + event.translationX;
+      translateY.value = ctx.startY + event.translationY;
+    },
+  });
+
+  const pinchGesture = useAnimatedGestureHandler({
+    onStart: (_, ctx) => {
+      ctx.startScale = scale.value;
+    },
+    onActive: (event, ctx) => {
+      scale.value = Math.max(0.3, Math.min(4, ctx.startScale * event.scale));
+    },
+  });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+  }));
+
   return (
-    <View style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
-      <WebView
-        originWhitelist={['*']}
-        source={{ html: neuralNetworkHTML }}
-        style={styles.webview}
-        backgroundColor="#0a0a0a"
-        scrollEnabled={false}
-        bounces={false}
-        overScrollMode="never"
-      />
-    </View>
+      <PinchGestureHandler>
+        <Animated.View style={[styles.container, animatedStyle]}>
+          <PanGestureHandler>
+            <Animated.View style={styles.container}>
+              <WebView
+                ref={webviewRef}
+                originWhitelist={['*']}
+                source={{ html: neuralNetworkHTML }}
+                style={styles.webview}
+                backgroundColor="#0a0a0a"
+                scrollEnabled={false}
+                bounces={false}
+                overScrollMode="never"
+                scalesPageToFit={false}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+                startInLoadingState={false}
+                allowsFullscreenVideo={false}
+                allowsInlineMediaPlayback={true}
+                mediaPlaybackRequiresUserAction={false}
+              />
+            </Animated.View>
+          </PanGestureHandler>
+        </Animated.View>
+      </PinchGestureHandler>
+    </GestureHandlerRootView>
   );
 }
 
